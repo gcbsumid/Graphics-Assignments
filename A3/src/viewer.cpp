@@ -8,6 +8,8 @@
 Viewer::Viewer(SceneNode* node) 
   : tempAngle(0.0)
   , mRoot(node)
+  , mTranslation(node->get_translation())
+  , mRotation(node->get_rotation())
   , mPosition(0.0, 0.0, 0.0)
   , mRotateX(0.0)
   , mRotateY(0.0)
@@ -44,6 +46,9 @@ Viewer::Viewer(SceneNode* node)
              Gdk::BUTTON_PRESS_MASK      | 
              Gdk::BUTTON_RELEASE_MASK    |
              Gdk::VISIBILITY_NOTIFY_MASK);
+
+  // mRoot->reset_rotation();
+  // mRoot->reset_translation();
 }
 
 Viewer::~Viewer()
@@ -85,6 +90,24 @@ void Viewer::toggleFrontfaceCulling() {
   else 
     mIsFrontfaceCullingOn = true;
 }
+
+void Viewer::resetPosition() {
+  mRoot->set_translation(mTranslation);
+}
+
+void Viewer::resetOrientation() {
+  mRoot->set_rotation(mRotation);
+}
+
+void Viewer::resetJoints() {
+  // TODO
+}
+
+void Viewer::resetAll() {
+  mRoot->set_translation(mTranslation);
+  mRoot->set_rotation(mRotation);
+}
+
 
 void Viewer::on_realize()
 {
@@ -165,9 +188,6 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   // glRotated(mRotateX, 1.0, 0.0, 0.0);
   // glRotated(mRotateY, 0.0, 1.0, 0.0);
 
-  mRoot->translate(mPosition);
-  mRoot->rotate('x', mRotateX);
-  mRoot->rotate('y', mRotateY);
   mRoot->walk_gl();
   // draw_sphere();
 
@@ -252,12 +272,12 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
   if (mIsButton1Active) {
     deltaX *= 0.1;
     deltaY *= 0.1;
-    mPosition = Vector3D(mPosition[0] + deltaX, mPosition[1] - deltaY, mPosition[2]);
+    mPosition = Vector3D(deltaX, -deltaY, mPosition[2]);
   }  
 
   if (mIsButton2Active) {
     deltaY *= 0.1;
-    mPosition = Vector3D(mPosition[0], mPosition[1], mPosition[2] + deltaY);
+    mPosition = Vector3D(mPosition[0], mPosition[1], deltaY);
   }
 
   if (mIsButton3Active) {
@@ -269,6 +289,10 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
     // if (mRotateY >= 360.0) 
     //   mRotateY -= 360.0;
   }
+
+  mRoot->translate(mPosition);
+  mRoot->rotate('x', mRotateX);
+  mRoot->rotate('y', mRotateY);
 
   return true;
 }

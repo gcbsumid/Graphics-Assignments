@@ -12,6 +12,14 @@ AppWindow::AppWindow(SceneNode* node)
   // Set up the application menu
   // The slot we use here just causes AppWindow::hide() on this,
   // which shuts down the application.
+  mMenuApp.items().push_back(MenuElem("_Reset Position", Gtk::AccelKey("i"), 
+    sigc::mem_fun(mViewer, &Viewer::resetPosition)));
+  mMenuApp.items().push_back(MenuElem("_Reset Orientation", Gtk::AccelKey("o"), 
+    sigc::mem_fun(mViewer, &Viewer::resetOrientation)));
+  mMenuApp.items().push_back(MenuElem("_Reset Joints", Gtk::AccelKey("n"), 
+    sigc::mem_fun(mViewer, &Viewer::resetJoints)));
+  mMenuApp.items().push_back(MenuElem("_Reset All", Gtk::AccelKey("a"), 
+    sigc::mem_fun(mViewer, &Viewer::resetAll)));
   mMenuApp.items().push_back(MenuElem("_Quit", Gtk::AccelKey("q"),
     sigc::mem_fun(*this, &AppWindow::hide)));
   
@@ -27,6 +35,7 @@ AppWindow::AppWindow(SceneNode* node)
     sigc::mem_fun(mViewer, &Viewer::toggleBackfaceCulling)));
   mMenuOptions.items().push_back(MenuElem("_Frontface Culling", Gtk::AccelKey("f"), 
     sigc::mem_fun(mViewer, &Viewer::toggleFrontfaceCulling)));
+
 
   // Set up the menu bar
   mMenubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Application", mMenuApp));

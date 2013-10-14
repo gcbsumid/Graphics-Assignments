@@ -23,6 +23,12 @@ public:
   void toggleBackfaceCulling();
   void toggleFrontfaceCulling();
   
+  // Resetting stuff
+  void resetPosition();
+  void resetOrientation();
+  void resetJoints();
+  void resetAll();
+
 protected:
 
   // Events we implement
@@ -55,7 +61,10 @@ private:
   double tempAngle;
 
   SceneNode* mRoot;
-  Matrix4x4 mTransform;
+  Matrix4x4 mTranslation;
+  Matrix4x4 mRotation;
+
+
   Point2D mLastMousePos;
   Point2D mCurrentMousePos;
   Vector3D mPosition;

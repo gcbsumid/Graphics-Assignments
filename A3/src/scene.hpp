@@ -15,11 +15,44 @@ public:
 
   const Matrix4x4& get_transform() const { return mTrans; }
   const Matrix4x4& get_inverse() const { return mInvTrans; }
+  const Matrix4x4& get_translation() const { return mTranslation; }
+  const Matrix4x4& get_translation_inverse() const { return mTranslationInverse; }
+  const Matrix4x4& get_rotation() const { return mRotation; }
+  const Matrix4x4& get_rotation_inverse() const { return mRotationInverse; }
   
   void set_transform(const Matrix4x4& m)
   {
     mTrans = m;
     mInvTrans = m.invert();
+  }
+
+  void recalculate_transform() {
+    mTrans = mTranslation * mScale * mRotation;
+    mInvTrans = mTrans.invert();        
+  }
+
+  void set_rotation(const Matrix4x4 rotate) {
+    mRotation = rotate;
+    mRotationInverse = rotate.invert();
+
+    recalculate_transform();
+  }
+
+  void set_translation(const Matrix4x4 trans) {
+    mTranslation = trans;
+    mTranslationInverse = trans.invert();
+
+    recalculate_transform();
+  }
+
+  void reset_rotation() {
+    mRotation = Matrix4x4();
+    mRotationInverse = Matrix4x4();
+  }
+
+  void reset_translation() {
+    mTranslation = Matrix4x4();
+    mTranslationInverse = Matrix4x4();    
   }
 
   void set_transform(const Matrix4x4& m, const Matrix4x4& i)
@@ -56,6 +89,12 @@ protected:
   // Transformations
   Matrix4x4 mTrans;
   Matrix4x4 mInvTrans;
+
+  Matrix4x4 mRotation;
+  Matrix4x4 mTranslation;
+  Matrix4x4 mScale;
+  Matrix4x4 mRotationInverse;
+  Matrix4x4 mTranslationInverse;
 
   // Hierarchy
   typedef std::list<SceneNode*> ChildList;

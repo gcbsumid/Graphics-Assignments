@@ -69,49 +69,54 @@ void SceneNode::rotate(char axis, double angle)
           std::cerr << "Error: Invalid Rotation Axis." << std::endl;
           break;
   }
-
+  mRotation = mRotation * r;
+  mRotationInverse = mRotation.invert();
   mTrans = mTrans * r;
-  mInvTrans = mInvTrans * r.invert();
+  mInvTrans = mTrans.invert();
 }
 
 void SceneNode::scale(const Vector3D& amount)
 {
   // std::cerr << "Stub: Scale " << mName << " by " << amount << std::endl;
-    Matrix4x4 s;
+  Matrix4x4 s;
 
-    /*
-    * [ x, 0, 0, 0 ] 
-    * [ 0, y, 0, 0 ]
-    * [ 0, 0, z, 0 ]
-    * [ 0, 0, 0, 1 ]
-    */
+  /*
+  * [ x, 0, 0, 0 ] 
+  * [ 0, y, 0, 0 ]
+  * [ 0, 0, z, 0 ]
+  * [ 0, 0, 0, 1 ]
+  */
 
-    s[0][0] = 1.0 * amount[0];
-    s[1][1] = 1.0 * amount[1];
-    s[2][2] = 1.0 * amount[2];
+  s[0][0] = 1.0 * amount[0];
+  s[1][1] = 1.0 * amount[1];
+  s[2][2] = 1.0 * amount[2];
 
-    mTrans = mTrans * s;
-    mInvTrans = mInvTrans * s.invert();
+  mScale = mScale * s;
+  // mScaleInverse = mScale.invert();
+  mTrans = mTrans * s;
+  mInvTrans = mInvTrans * s.invert();
 }
 
 void SceneNode::translate(const Vector3D& amount)
 {
   // std::cerr << "Stub: Translate " << mName << " by " << amount << std::endl;
-    Matrix4x4 t;
+  Matrix4x4 t;
 
-    /*
-    * [ 1, 0, 0, x ] 
-    * [ 0, 1, 0, y ]
-    * [ 0, 0, 1, z ]
-    * [ 0, 0, 0, 1 ]
-    */
+  /*
+  * [ 1, 0, 0, x ] 
+  * [ 0, 1, 0, y ]
+  * [ 0, 0, 1, z ]
+  * [ 0, 0, 0, 1 ]
+  */
 
-    t[0][3] = amount[0];
-    t[1][3] = amount[1];
-    t[2][3] = amount[2];
+  t[0][3] = amount[0];
+  t[1][3] = amount[1];
+  t[2][3] = amount[2];
 
-    mTrans = mTrans * t;
-    mInvTrans = mInvTrans * t.invert();
+  mTranslation = mTranslation * t;
+  mTranslationInverse = mTranslation.invert();  
+  mTrans = mTrans * t;
+  mInvTrans = mInvTrans * t.invert();
 }
 
 bool SceneNode::is_joint() const
