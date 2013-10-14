@@ -40,9 +40,9 @@ public:
 
   // Callbacks to be implemented.
   // These will be called from Lua.
-  void rotate(char axis, double angle);
-  void scale(const Vector3D& amount);
-  void translate(const Vector3D& amount);
+  virtual void rotate(char axis, double angle);
+  virtual void scale(const Vector3D& amount);
+  virtual void translate(const Vector3D& amount);
 
   // Returns true if and only if this node is a JointNode
   virtual bool is_joint() const;
@@ -91,6 +91,7 @@ public:
   virtual ~GeometryNode();
 
   virtual void walk_gl(bool picking = false) const;
+  virtual void scale(const Vector3D& amount);
 
   const Material* get_material() const;
   Material* get_material();
@@ -101,6 +102,8 @@ public:
   }
 
 protected:
+  Matrix4x4 mScale;
+  Matrix4x4 mInvScale;
   Material* mMaterial;
   Primitive* mPrimitive;
 };

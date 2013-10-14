@@ -8,7 +8,7 @@
 Viewer::Viewer(SceneNode* node) 
   : tempAngle(0.0)
   , mRoot(node)
-  , mPosition(0.0, 0.0, -4.0)
+  , mPosition(0.0, 0.0, 0.0)
   , mRotateX(0.0)
   , mRotateY(0.0)
   , mIsButton1Active(false)
@@ -161,9 +161,13 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
   // Draw stuff
-  glTranslated(mPosition[0], mPosition[1], mPosition[2]);
-  glRotated(mRotateX, 1.0, 0.0, 0.0);
-  glRotated(mRotateY, 0.0, 1.0, 0.0);
+  // glTranslated(mPosition[0], mPosition[1], mPosition[2]);
+  // glRotated(mRotateX, 1.0, 0.0, 0.0);
+  // glRotated(mRotateY, 0.0, 1.0, 0.0);
+
+  mRoot->translate(mPosition);
+  mRoot->rotate('x', mRotateX);
+  mRoot->rotate('y', mRotateY);
   mRoot->walk_gl();
   // draw_sphere();
 
@@ -227,6 +231,9 @@ bool Viewer::on_button_release_event(GdkEventButton* event)
 {
   // std::cerr << "Stub: Button " << event->button << " released" << std::endl;
   mCurrentMousePos = Point2D(event->x, event->y);
+  mPosition = Vector3D();
+  mRotateX = 0.0;
+  mRotateY = 0.0;
   mIsButton1Active = false;
   mIsButton2Active = false;
   mIsButton3Active = false;
@@ -245,22 +252,22 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
   if (mIsButton1Active) {
     deltaX *= 0.1;
     deltaY *= 0.1;
-    mPosition = Point3D(mPosition[0] + deltaX, mPosition[1] - deltaY, mPosition[2]);
+    mPosition = Vector3D(mPosition[0] + deltaX, mPosition[1] - deltaY, mPosition[2]);
   }  
 
   if (mIsButton2Active) {
     deltaY *= 0.1;
-    mPosition = Point3D(mPosition[0], mPosition[1], mPosition[2] + deltaY);
+    mPosition = Vector3D(mPosition[0], mPosition[1], mPosition[2] + deltaY);
   }
 
   if (mIsButton3Active) {
-    mRotateX += deltaX;
-    mRotateY += deltaY;
+    mRotateX = deltaX * 3.0;
+    mRotateY = deltaY * 3.0;
 
-    if (mRotateX >= 360.0) 
-      mRotateX -= 360.0;
-    if (mRotateY >= 360.0) 
-      mRotateY -= 360.0;
+    // if (mRotateX >= 360.0) 
+    //   mRotateX -= 360.0;
+    // if (mRotateY >= 360.0) 
+    //   mRotateY -= 360.0;
   }
 
   return true;

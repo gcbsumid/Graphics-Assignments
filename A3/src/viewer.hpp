@@ -58,7 +58,7 @@ private:
   Matrix4x4 mTransform;
   Point2D mLastMousePos;
   Point2D mCurrentMousePos;
-  Point3D mPosition;
+  Vector3D mPosition;
   double mRotateX;
   double mRotateY;
   bool mIsButton1Active;

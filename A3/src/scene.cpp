@@ -25,11 +25,11 @@ void SceneNode::walk_gl(bool picking) const
     mTrans[0][3], mTrans[1][3], mTrans[2][3], mTrans[3][3] 
   };
   
-  std::cout << "Matrix in scene node: \n";
-  std::cout << "{ " << mTrans[0][0] << ", " << mTrans[1][0] << ", " << mTrans[2][0] << ", " << mTrans[3][0] << "}\n";
-  std::cout << "{ " << mTrans[0][1] << ", " << mTrans[1][1] << ", " << mTrans[2][1] << ", " << mTrans[3][1] << "}\n";
-  std::cout << "{ " << mTrans[0][2] << ", " << mTrans[1][2] << ", " << mTrans[2][2] << ", " << mTrans[3][2] << "}\n";
-  std::cout << "{ " << mTrans[0][3] << ", " << mTrans[1][3] << ", " << mTrans[2][3] << ", " << mTrans[3][3] << "}\n";
+  // std::cout << "Matrix in scene node: \n";
+  // std::cout << "{ " << mTrans[0][0] << ", " << mTrans[1][0] << ", " << mTrans[2][0] << ", " << mTrans[3][0] << "}\n";
+  // std::cout << "{ " << mTrans[0][1] << ", " << mTrans[1][1] << ", " << mTrans[2][1] << ", " << mTrans[3][1] << "}\n";
+  // std::cout << "{ " << mTrans[0][2] << ", " << mTrans[1][2] << ", " << mTrans[2][2] << ", " << mTrans[3][2] << "}\n";
+  // std::cout << "{ " << mTrans[0][3] << ", " << mTrans[1][3] << ", " << mTrans[2][3] << ", " << mTrans[3][3] << "}\n";
 
   glMultMatrixd(trans);
 
@@ -44,6 +44,7 @@ void SceneNode::rotate(char axis, double angle)
 {
   // std::cerr << "Stub: Rotate " << mName << " around " << axis << " by " << angle << std::endl;
   Matrix4x4 r;
+  angle = (angle/180 * M_PI);
 
   switch (axis) {
       case 'x':
@@ -139,11 +140,11 @@ void JointNode::walk_gl(bool picking) const
     mTrans[0][3], mTrans[1][3], mTrans[2][3], mTrans[3][3] 
   };
 
-  std::cout << "Matrix in Joint node: \n";
-  std::cout << "{ " << mTrans[0][0] << ", " << mTrans[1][0] << ", " << mTrans[2][0] << ", " << mTrans[3][0] << "}\n";
-  std::cout << "{ " << mTrans[0][1] << ", " << mTrans[1][1] << ", " << mTrans[2][1] << ", " << mTrans[3][1] << "}\n";
-  std::cout << "{ " << mTrans[0][2] << ", " << mTrans[1][2] << ", " << mTrans[2][2] << ", " << mTrans[3][2] << "}\n";
-  std::cout << "{ " << mTrans[0][3] << ", " << mTrans[1][3] << ", " << mTrans[2][3] << ", " << mTrans[3][3] << "}\n";
+  // std::cout << "Matrix in Joint node: \n";
+  // std::cout << "{ " << mTrans[0][0] << ", " << mTrans[1][0] << ", " << mTrans[2][0] << ", " << mTrans[3][0] << "}\n";
+  // std::cout << "{ " << mTrans[0][1] << ", " << mTrans[1][1] << ", " << mTrans[2][1] << ", " << mTrans[3][1] << "}\n";
+  // std::cout << "{ " << mTrans[0][2] << ", " << mTrans[1][2] << ", " << mTrans[2][2] << ", " << mTrans[3][2] << "}\n";
+  // std::cout << "{ " << mTrans[0][3] << ", " << mTrans[1][3] << ", " << mTrans[2][3] << ", " << mTrans[3][3] << "}\n";
 
   glMultMatrixd(trans);
 
@@ -187,7 +188,7 @@ GeometryNode::~GeometryNode()
 void GeometryNode::walk_gl(bool picking) const
 {
   glPushMatrix();
-  // std::cout <<"My name is " << mName << std::endl;
+  // std::cout <<"Drawing " << mName << std::endl;
   // glLoadIdentity();
   // glTranslated(0.0, 0.0, -2.0);
 
@@ -197,15 +198,27 @@ void GeometryNode::walk_gl(bool picking) const
     mTrans[0][2], mTrans[1][2], mTrans[2][2], mTrans[3][2], 
     mTrans[0][3], mTrans[1][3], mTrans[2][3], mTrans[3][3] 
   };
-  std::cout << "Matrix in GeometryNode: \n";
-  std::cout << "{ " << mTrans[0][0] << ", " << mTrans[1][0] << ", " << mTrans[2][0] << ", " << mTrans[3][0] << "}\n";
-  std::cout << "{ " << mTrans[0][1] << ", " << mTrans[1][1] << ", " << mTrans[2][1] << ", " << mTrans[3][1] << "}\n";
-  std::cout << "{ " << mTrans[0][2] << ", " << mTrans[1][2] << ", " << mTrans[2][2] << ", " << mTrans[3][2] << "}\n";
-  std::cout << "{ " << mTrans[0][3] << ", " << mTrans[1][3] << ", " << mTrans[2][3] << ", " << mTrans[3][3] << "}\n";
+  double scale[] = {
+    mScale[0][0], mScale[1][0], mScale[2][0], mScale[3][0], 
+    mScale[0][1], mScale[1][1], mScale[2][1], mScale[3][1], 
+    mScale[0][2], mScale[1][2], mScale[2][2], mScale[3][2], 
+    mScale[0][3], mScale[1][3], mScale[2][3], mScale[3][3] 
+  };
+
+
+  // std::cout << "Matrix in GeometryNode: \n";
+  // std::cout << "{ " << mTrans[0][0] << ", " << mTrans[1][0] << ", " << mTrans[2][0] << ", " << mTrans[3][0] << "}\n";
+  // std::cout << "{ " << mTrans[0][1] << ", " << mTrans[1][1] << ", " << mTrans[2][1] << ", " << mTrans[3][1] << "}\n";
+  // std::cout << "{ " << mTrans[0][2] << ", " << mTrans[1][2] << ", " << mTrans[2][2] << ", " << mTrans[3][2] << "}\n";
+  // std::cout << "{ " << mTrans[0][3] << ", " << mTrans[1][3] << ", " << mTrans[2][3] << ", " << mTrans[3][3] << "}\n";
 
   glMultMatrixd(trans);
+  
+  glPushMatrix();
+  glMultMatrixd(scale);
   mMaterial->apply_gl();
   mPrimitive->walk_gl(picking);
+  glPopMatrix();
 
   for(auto& child : mChildren) {
     child->walk_gl();
@@ -214,3 +227,18 @@ void GeometryNode::walk_gl(bool picking) const
   glPopMatrix();
 }
  
+void GeometryNode::scale(const Vector3D& amount)
+{
+    /*
+    * [ x, 0, 0, 0 ] 
+    * [ 0, y, 0, 0 ]
+    * [ 0, 0, z, 0 ]
+    * [ 0, 0, 0, 1 ]
+    */
+
+    mScale[0][0] = 1.0 * amount[0];
+    mScale[1][1] = 1.0 * amount[1];
+    mScale[2][2] = 1.0 * amount[2];
+
+    mInvScale = mScale.invert();
+}
