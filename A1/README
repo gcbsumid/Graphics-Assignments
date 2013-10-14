@@ -1,0 +1,25 @@
+Name: Glenn Christian Sumido
+Student Number: 20374863
+User-id: gcbsumid
+Assignment: 1
+
+The final executable was compiled on this machine: 
+no. I compiled it from my computer at home. I will come into the graphics lab early tomorrow morning.
+Hopefully, it will compile there as well. Just in case it doesn't, I compiled it from home. 
+
+How to invoke my program: 
+open a terminal and enter the following commands:
+cd /u1/gcbsumido/cs488/handin/A1/src
+./game488
+
+How to use my extra features: 
+None
+
+I have created the following data files, which are in the data directory:
+None
+
+My program assumes the following: 
+- Persistence means that when the release gets called while mouse moving, 
+  then the model will rotate forever.
+- The model (wall and the game) will rotate across the X,Y,Z axis where 
+  it is like (0,0,0) in the middle of the model.
