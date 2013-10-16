@@ -23,6 +23,8 @@ private:
   Gtk::Menu mMenuMode;
   Gtk::Menu mMenuOptions;
 
+  Gtk::RadioMenuItem::Group mMenuGroup;
+
   // The main OpenGL area
   Viewer mViewer;
 };

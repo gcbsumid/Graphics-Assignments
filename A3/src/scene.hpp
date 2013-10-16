@@ -64,6 +64,7 @@ public:
   void add_child(SceneNode* child)
   {
     mChildren.push_back(child);
+    child->setParent(this);
   }
 
   void remove_child(SceneNode* child)
@@ -71,17 +72,29 @@ public:
     mChildren.remove(child);
   }
 
+  virtual bool select(int id);
+
   // Callbacks to be implemented.
   // These will be called from Lua.
   virtual void rotate(char axis, double angle);
   virtual void scale(const Vector3D& amount);
   virtual void translate(const Vector3D& amount);
+  virtual void selection_rotate(char axis, double angle);
+  virtual void reset_joints();
+  virtual void unselect_all();
+
+  void setParent(SceneNode* node) {
+    mParent = node;
+  }
 
   // Returns true if and only if this node is a JointNode
   virtual bool is_joint() const;
+  void apply_select_to_children(bool isSelect);
   
 protected:
-  
+
+
+  static int nextID;
   // Useful for picking
   int mId;
   std::string mName;
@@ -97,6 +110,9 @@ protected:
   Matrix4x4 mTranslationInverse;
 
   // Hierarchy
+  SceneNode* mParent;
+
+  bool mSelected;
   typedef std::list<SceneNode*> ChildList;
   ChildList mChildren;
 };
@@ -113,13 +129,17 @@ public:
   void set_joint_x(double min, double init, double max);
   void set_joint_y(double min, double init, double max);
 
+  virtual void selection_rotate(char axis, double angle);
+  virtual void reset_joints();
+
   struct JointRange {
     double min, init, max;
   };
 
   
 protected:
-
+  double mAngleX; 
+  double mAngleY;
   JointRange mJointX, mJointY;
 };
 
@@ -131,6 +151,7 @@ public:
 
   virtual void walk_gl(bool picking = false) const;
   virtual void scale(const Vector3D& amount);
+  virtual bool select(int id);
 
   const Material* get_material() const;
   Material* get_material();

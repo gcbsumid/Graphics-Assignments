@@ -6,7 +6,7 @@
 class Material {
 public:
   virtual ~Material();
-  virtual void apply_gl() const = 0;
+  virtual void apply_gl(bool isSelected) const = 0;
 
 protected:
   Material()
@@ -19,13 +19,15 @@ public:
   PhongMaterial(const Colour& kd, const Colour& ks, double shininess);
   virtual ~PhongMaterial();
 
-  virtual void apply_gl() const;
+  virtual void apply_gl(bool isSelected) const;
 
 private:
   Colour m_kd;
   Colour m_ks;
 
   double m_shininess;
+
+  static const Colour m_selected;
 };
 
 

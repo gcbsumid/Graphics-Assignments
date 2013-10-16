@@ -5,6 +5,8 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+static int BUFFER_SIZE = 512;
+
 Viewer::Viewer(SceneNode* node) 
   : tempAngle(0.0)
   , mRoot(node)
@@ -20,6 +22,7 @@ Viewer::Viewer(SceneNode* node)
   , mIsZBufferOn(false)
   , mIsBackfaceCullingOn(false)
   , mIsFrontfaceCullingOn(false)
+  , mMode(MODE_ENTIRE_OBJ)
 {
   Glib::RefPtr<Gdk::GL::Config> glconfig;
 
@@ -100,12 +103,13 @@ void Viewer::resetOrientation() {
 }
 
 void Viewer::resetJoints() {
-  // TODO
+  mRoot->reset_joints();
 }
 
 void Viewer::resetAll() {
   mRoot->set_translation(mTranslation);
   mRoot->set_rotation(mRotation);
+  mRoot->reset_joints();
 }
 
 
@@ -184,11 +188,11 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
   // Draw stuff
-  // glTranslated(mPosition[0], mPosition[1], mPosition[2]);
+  glTranslated(mPosition[0], mPosition[1], mPosition[2]);
   // glRotated(mRotateX, 1.0, 0.0, 0.0);
   // glRotated(mRotateY, 0.0, 1.0, 0.0);
 
-  mRoot->walk_gl();
+  mRoot->walk_gl(false);
   // draw_sphere();
 
   if (mIsTrackballOn) {
@@ -247,11 +251,85 @@ bool Viewer::on_button_press_event(GdkEventButton* event)
   return true;
 }
 
+void Viewer::processHits(int hits, unsigned int buffer[]) {
+  unsigned int *ptr;
+  // GLuint ii, jj, names;
+
+  ptr = (unsigned int*) buffer;
+
+  float minZ = 1000.0; // Z is always less than 0.
+  int id = 0;
+  for (int i = 0; i < hits; ++i) {
+    GLuint numOfNamesInHit = *ptr;
+    // printf( "Number: %d\n\tMin Z: %g\n\tMax Z: %g\n", numOfNamesInHit, (float)*(ptr+1)/0x7fffffff, (float)*(ptr+2)/0x7fffffff);
+    float curMinZ = (float) *(ptr+1) / 0x7fffffff;
+
+    // for (unsigned int j = 0; j < numOfNamesInHit; j++) {
+
+    //   printf("Names: %d \n", *(ptr+3+j));
+    //   // std::cout << "\tNames: " << *ptr << std::endl;
+    //   // ptr++;
+    // }
+
+    ptr += 3 + numOfNamesInHit - 1;
+
+    if (curMinZ < minZ) {
+      id = *ptr;
+      minZ = curMinZ;
+    }
+    ptr++;
+    // ptr += numOfNamesInHit;
+  }
+  // std::cout << "The id that I found is: " << id << std::endl;
+  mRoot->select(id);
+}
+
+void Viewer::selection(GdkEventButton* event) {
+  GLuint selectBuf[BUFFER_SIZE];
+  GLint hits;
+  GLint viewport[4];
+
+  glGetIntegerv(GL_VIEWPORT, viewport);
+  glSelectBuffer(BUFFER_SIZE, selectBuf);
+  (void) glRenderMode(GL_SELECT);
+
+  glInitNames();
+  glPushName(0);
+
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+
+  gluPickMatrix((GLdouble)event->x, (GLdouble)(viewport[3] - event->y), 5, 5, viewport);
+  glMatrixMode(GL_MODELVIEW);
+  gluPerspective(40.0, (GLfloat)get_width()/(GLfloat)get_height(), 0.1, 1000.0);
+
+  mRoot->walk_gl(true);
+
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  hits = glRenderMode(GL_RENDER);
+
+  if (hits > 0) {
+    // std::cout << "There are " << hits << " hits!" << std::endl;
+    processHits(hits, selectBuf);
+  } else if (hits < 0) {
+    // glRenderMode(GL_RENDER) returns negative if the buffer is too small
+    BUFFER_SIZE *= 2;
+  }
+}
+
 bool Viewer::on_button_release_event(GdkEventButton* event)
 {
   // std::cerr << "Stub: Button " << event->button << " released" << std::endl;
+
+  // Joint selection mdoe and left button click
+  if (mMode == MODE_JOINTS && event->button == 1) {
+    selection(event);
+  }
+
   mCurrentMousePos = Point2D(event->x, event->y);
-  mPosition = Vector3D();
   mRotateX = 0.0;
   mRotateY = 0.0;
   mIsButton1Active = false;
@@ -268,31 +346,37 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
   mCurrentMousePos = Point2D(event->x, event->y);
   double deltaX = mCurrentMousePos[0] - mLastMousePos[0];
   double deltaY = mCurrentMousePos[1] - mLastMousePos[1];
+  if (mMode == MODE_ENTIRE_OBJ) {
+    if (mIsButton1Active) {
+      deltaX *= 0.1;
+      deltaY *= 0.1;
+      mPosition = Vector3D(mPosition[0] + deltaX, mPosition[1] - deltaY, mPosition[2]);
+    }  
 
-  if (mIsButton1Active) {
-    deltaX *= 0.1;
-    deltaY *= 0.1;
-    mPosition = Vector3D(deltaX, -deltaY, mPosition[2]);
-  }  
+    if (mIsButton2Active) {
+      deltaY *= 0.1;
+      mPosition = Vector3D(mPosition[0], mPosition[1], mPosition[2] + deltaY);
+    }
 
-  if (mIsButton2Active) {
-    deltaY *= 0.1;
-    mPosition = Vector3D(mPosition[0], mPosition[1], deltaY);
+    if (mIsButton3Active) {
+      mRotateX = deltaX;
+      mRotateY = deltaY;
+    }
+
+    // mRoot->translate(mPosition);
+    mRoot->rotate('x', mRotateX);
+    mRoot->rotate('y', mRotateY);
+  } else {
+    if (mIsButton2Active) {
+      mRotateX = -deltaY;
+      mRoot->selection_rotate('x', mRotateX);
+    }
+
+    if (mIsButton3Active) {
+      mRotateY = -deltaX;
+      mRoot->selection_rotate('y', mRotateY);
+    }
   }
-
-  if (mIsButton3Active) {
-    mRotateX = deltaX * 3.0;
-    mRotateY = deltaY * 3.0;
-
-    // if (mRotateX >= 360.0) 
-    //   mRotateX -= 360.0;
-    // if (mRotateY >= 360.0) 
-    //   mRotateY -= 360.0;
-  }
-
-  mRoot->translate(mPosition);
-  mRoot->rotate('x', mRotateX);
-  mRoot->rotate('y', mRotateY);
 
   return true;
 }
@@ -336,6 +420,14 @@ void Viewer::draw_trackball_circle()
   glEnd();
   glColor3f(0.0, 0.0, 0.0);
   glDisable(GL_LINE_SMOOTH);
+}
+
+void Viewer::undo() {
+
+}
+
+void Viewer::redo() {
+  
 }
 
 void Viewer::draw_sphere() {

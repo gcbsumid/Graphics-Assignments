@@ -25,6 +25,19 @@ AppWindow::AppWindow(SceneNode* node)
   
   sigc::slot<bool> gameTick = sigc::mem_fun(mViewer, &Viewer::updateGame);
   Glib::signal_timeout().connect(gameTick, 50);
+
+  mMenuEdit.items().push_back(MenuElem("_Undo", Gtk::AccelKey("u"),
+    sigc::mem_fun(mViewer, &Viewer::undo)));
+  mMenuEdit.items().push_back(MenuElem("_Redo", Gtk::AccelKey("r"),
+    sigc::mem_fun(mViewer, &Viewer::redo)));
+
+  sigc::slot1<void, Viewer::Mode> mode_slot = sigc::mem_fun(mViewer, &Viewer::setSelectionMode);
+  mMenuMode.items().push_back(Gtk::Menu_Helpers::RadioMenuElem(mMenuGroup, 
+    "_Position/Orientation", Gtk::AccelKey("p"), 
+    sigc::bind( mode_slot, Viewer::MODE_ENTIRE_OBJ)));
+  mMenuMode.items().push_back(Gtk::Menu_Helpers::RadioMenuElem(mMenuGroup, 
+    "_Joints", Gtk::AccelKey("j"), 
+    sigc::bind( mode_slot, Viewer::MODE_JOINTS)));
   
   // Set up Options Menu
   mMenuOptions.items().push_back(MenuElem("_Circle", Gtk::AccelKey("c"), 
@@ -53,7 +66,7 @@ AppWindow::AppWindow(SceneNode* node)
 
   // Put the viewer below the menubar. pack_start "grows" the widget
   // by default, so it'll take up the rest of the window.
-  mViewer.set_size_request(300, 300);
+  mViewer.set_size_request(1000, 1000);
   mVBox.pack_start(mViewer);
 
   show_all();

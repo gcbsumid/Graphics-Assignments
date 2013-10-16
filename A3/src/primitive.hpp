@@ -2,6 +2,7 @@
 #define CS488_PRIMITIVE_HPP
 
 #include "algebra.hpp"
+#include <GL/gl.h>
 
 class Primitive {
 public:
@@ -15,6 +16,10 @@ public:
   virtual ~Sphere();
   virtual void walk_gl(bool picking); // const;
 
+  static void initDisplayList();
+  static bool mHasInitializedDisplayList;
+
+  static GLuint mSphereDL;
   double tempAngle;
 };
 

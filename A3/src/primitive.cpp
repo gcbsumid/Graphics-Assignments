@@ -3,24 +3,66 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+bool Sphere::mHasInitializedDisplayList = false;
+GLuint Sphere::mSphereDL = 0xFFFFFFFF;
+
 Primitive::~Primitive()
 {
 }
 
 Sphere::Sphere() : tempAngle(0.0) {
-    std::cout <<"Sphere created!" << std::endl;
+    // std::cout <<"Sphere created!" << std::endl;
 }
 
 Sphere::~Sphere() 
 {
+  glDeleteLists(mSphereDL, 1);
+}
+
+void Sphere::initDisplayList() {
+  mSphereDL = glGenLists(1);
+  glNewList(mSphereDL, GL_COMPILE);
+  // initDisplayList();
+  float theta = 0.0f, phi = 0.0f, deltaTheta = M_PI / 20.0, deltaPhi = M_PI / 20.0;
+  Point3D p1, p2;
+  float r = 1.0;
+  
+  for (theta = 0; theta <= 2 * M_PI; theta += deltaTheta) {
+      glBegin(GL_QUAD_STRIP);
+      for (phi = 0; phi <= 2 * M_PI; phi += deltaPhi) {
+          p1 = Point3D(
+              r * cosf(theta) * sinf(phi),
+              r * sinf(theta) * sinf(phi),
+              r * cosf(phi));
+
+          p2 = Point3D(
+              r * cosf(theta + deltaTheta) * sinf(phi),
+              r * sinf(theta + deltaTheta) * sinf(phi),
+              r * cosf(phi));
+
+          glNormal3f(p1[0], p1[1], p1[2]);
+          glVertex3f(p1[0], p1[1], p1[2]);
+          glNormal3f(p2[0], p2[1], p2[2]);
+          glVertex3f(p2[0], p2[1], p2[2]);
+      }
+      glEnd();
+  }
+  glEndList();
 }
 
 void Sphere::walk_gl(bool picking) //const
 {
+  if (!mHasInitializedDisplayList) {
+    initDisplayList();
+    mHasInitializedDisplayList = true;
+  }
+  if (mSphereDL == 0xFFFFFFFF) {
+    std::cerr << "Error: Invalid Sphere Display List." << std::endl;
+  }
+  // std::cout << "I'm drawing the sphere with display list " << mSphereDL << std::endl;
+  glCallList(mSphereDL);
+  // initDisplayList();
     // You must apply all transformations before the primitive gets drawn
-    float theta = 0.0f, phi = 0.0f, deltaTheta = M_PI / 20.0, deltaPhi = M_PI / 20.0;
-    Point3D p1, p2, p3, p4;
-    float r = 1.0;
 
     // tempAngle += 1.0;
     // if (tempAngle >= 360.0) {
@@ -35,18 +77,6 @@ void Sphere::walk_gl(bool picking) //const
     // Colour black = Colour(0.0, 0.0, 0.0);
     // Colour white = Colour(1.0, 1.0, 1.0);
     // bool isBlack = true;
-    for (theta = 0; theta <= 2 * M_PI; theta += deltaTheta) {
-        glBegin(GL_QUAD_STRIP);
-        for (phi = 0; phi <= 2 * M_PI; phi += deltaPhi) {
-            p1 = Point3D(
-                r * cosf(theta) * sinf(phi),
-                r * sinf(theta) * sinf(phi),
-                r * cosf(phi));
-
-            p2 = Point3D(
-                r * cosf(theta + deltaTheta) * sinf(phi),
-                r * sinf(theta + deltaTheta) * sinf(phi),
-                r * cosf(phi));
 
               // p1 = Point3D(
               //   r * sin(phi + deltaPhi) * sin(theta + deltaTheta),
@@ -82,16 +112,9 @@ void Sphere::walk_gl(bool picking) //const
 
 
             // glColor3f(temp.R(), temp.G(), temp.B());
-            glNormal3f(p1[0], p1[1], p1[2]);
-            glVertex3f(p1[0], p1[1], p1[2]);
-            glNormal3f(p2[0], p2[1], p2[2]);
-            glVertex3f(p2[0], p2[1], p2[2]);
             // glVertex3f(p1[0], p1[1], p1[2]);
             // glVertex3f(p2[0], p2[1], p3[2]);
             // glVertex3f(p3[0], p3[1], p3[2]);
             // glVertex3f(p4[0], p4[1], p4[2]);
-        }
-        glEnd();
-    }
     // glPopMatrix();
 }

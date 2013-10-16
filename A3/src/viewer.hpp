@@ -29,6 +29,20 @@ public:
   void resetJoints();
   void resetAll();
 
+  // Editting stuff
+  void undo();
+  void redo();
+
+  // Selection Mode
+  enum Mode {
+    MODE_ENTIRE_OBJ = 0,
+    MODE_JOINTS
+  };
+  void setSelectionMode(Mode mode) { 
+    mMode = mode; 
+    mRoot->unselect_all();
+  }
+
 protected:
 
   // Events we implement
@@ -57,6 +71,8 @@ protected:
 private:
 
   void draw_sphere();
+  void selection(GdkEventButton* event);
+  void processHits(int hits, unsigned int buffer[]);
 
   double tempAngle;
 
@@ -79,6 +95,8 @@ private:
   bool mIsZBufferOn;
   bool mIsBackfaceCullingOn;
   bool mIsFrontfaceCullingOn;
+
+  Mode mMode;
 };
 
 #endif
