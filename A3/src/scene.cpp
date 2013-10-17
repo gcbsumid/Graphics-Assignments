@@ -1,5 +1,6 @@
 #include "scene.hpp"
 #include <iostream>
+#include <utility>
 #include <GL/gl.h>
 #include <GL/glu.h>
 
@@ -119,8 +120,8 @@ void SceneNode::translate(const Vector3D& amount)
 
   mTranslation = mTranslation * t;
   mTranslationInverse = mTranslation.invert();  
-  mTrans = mTrans * t;
-  mInvTrans = mInvTrans * t.invert();
+  mTrans = t * mTrans;
+  mInvTrans = mTrans.invert();
 }
 
 bool SceneNode::is_joint() const
@@ -166,11 +167,51 @@ void SceneNode::unselect_all() {
   }
 }
 
+void SceneNode::push_stack() {
+  for (auto& child : mChildren) {
+    child->push_stack();
+  }
+}
+
+void SceneNode::undo(const std::set<int>& nodes) {
+  for (auto& child : mChildren) {
+    child->undo(nodes);
+  }
+}
+
+void SceneNode::redo(const std::set<int>& nodes) {
+  for (auto& child : mChildren) {
+    child->redo(nodes);
+  }
+}
+
+void SceneNode::multiplyRotation(Matrix4x4 mat) {
+  mTrans = mTrans * mat;
+}
+
+bool SceneNode::isSelected(const int id) {
+  if (id == mId) {
+    if (mSelected) {
+      return true;
+    }
+    return false;
+  } else {
+    for (auto& child : mChildren) {
+      if(child->isSelected(id)){
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
 JointNode::JointNode(const std::string& name)
   : SceneNode(name)
+  , mCurrentAngle(0)
   , mAngleX(0.0)
   , mAngleY(0.0)
 {
+  mAngleHistory.push_back(std::make_pair(mAngleX, mAngleY));
 }
 
 JointNode::~JointNode()
@@ -225,6 +266,11 @@ void JointNode::reset_joints() {
   mAngleX = mJointX.init;
   mAngleY = mJointY.init;
 
+  // todo: clear stack
+  mAngleHistory.clear();
+  mAngleHistory.push_back(std::make_pair(mAngleX, mAngleY));
+  mCurrentAngle = 0;
+
   for (auto& child : mChildren) {
     child->reset_joints();
   }
@@ -241,6 +287,8 @@ void JointNode::set_joint_x(double min, double init, double max)
   mJointX.init = init;
   mJointX.max = max;
   mAngleX = init;
+  mAngleX = init;
+  mAngleHistory.at(0).first = mAngleX;
 }
 
 void JointNode::set_joint_y(double min, double init, double max)
@@ -249,44 +297,84 @@ void JointNode::set_joint_y(double min, double init, double max)
   mJointY.init = init;
   mJointY.max = max;
   mAngleY = init;
+  mAngleHistory.at(0).second = mAngleY;
+}
+
+void JointNode::set_x_angle(double angle) {
+  if (mAngleX < mJointX.min || mAngleX > mJointX.max){
+    return;
+  }
+
+  // std::cout << "new Angle X: " << mAngleX + angle << " " <<
+  //   "min: " << mJointX.min << std::endl;
+  if (mAngleX + angle < mJointX.min) {
+    mAngleX = mJointX.min;
+  } else if (mAngleX + angle > mJointX.max) {
+    mAngleX = mJointX.max;
+  } else {
+    mAngleX += angle;
+  }
+  // std::cout << "new Angle X: " << mAngleX << std::endl;
+}
+
+void JointNode::set_y_angle(double angle) {
+  if (mAngleY < mJointY.min || mAngleY > mJointY.max){
+    return;
+  }
+
+  if (mAngleY + angle < mJointY.min) {
+    mAngleY = mJointY.min;
+  } else if (mAngleY + angle > mJointY.max) {
+    mAngleY = mJointY.max;
+  } else {
+    mAngleY += angle;
+  } 
+}
+
+void JointNode::push_stack() {
+  if (mSelected) {
+    while (mCurrentAngle < mAngleHistory.size() -1) {
+      mAngleHistory.pop_back();
+    }
+
+    mAngleHistory.push_back(std::make_pair(mAngleX, mAngleY));
+    mCurrentAngle++;
+  } else {
+    for (auto& child : mChildren) {
+      child->push_stack();
+    }
+  }
+}
+
+void JointNode::undo_joint() {
+  if (mAngleHistory.empty() || mCurrentAngle <= 0) {
+    return;
+  }
+
+  mCurrentAngle--;
+
+  mAngleX = mAngleHistory.at(mCurrentAngle).first;
+  mAngleY = mAngleHistory.at(mCurrentAngle).second;
+}
+
+void JointNode::redo_joint() {
+
+  if (mAngleHistory.empty() || mCurrentAngle >= mAngleHistory.size()-1 ) {
+      return;
+  }
+
+  mCurrentAngle++;
+  mAngleX = mAngleHistory.at(mCurrentAngle).first;
+  mAngleY = mAngleHistory.at(mCurrentAngle).second;
+
 }
 
 void JointNode::selection_rotate(char axis, double angle) {
   if (mSelected) {
     if (axis == 'x') {
-      if (mAngleX < mJointX.min || mAngleX > mJointX.max){
-        return;
-      }
-
-      if (mAngleX + angle < mJointX.min) {
-        // double diff = mAngleX - mJointX.min;
-        mAngleX = mJointX.min;
-        // rotate('x', -diff);
-      } else if (mAngleX + angle > mJointX.max) {
-        // double diff = mJointX.max - mAngleX;
-        mAngleX = mJointX.max;
-        // rotate('x', diff);
-      } else {
-        mAngleX += angle;
-        // rotate('x', angle);
-      }
+      set_x_angle(angle);
     } else if (axis == 'y') {
-      if (mAngleY < mJointY.min || mAngleY > mJointY.max){
-        return;
-      }
-
-      if (mAngleY + angle < mJointY.min) {
-        // double diff = mAngleY - mJointY.min;
-        mAngleY = mJointY.min;
-        // rotate('y', -diff);
-      } else if (mAngleY + angle > mJointY.max) {
-        // double diff = mJointY.max - mAngleY;
-        mAngleY = mJointY.max;
-        // rotate('y', diff);
-      } else {
-        mAngleY += angle;
-        // rotate('y', angle);
-      }    
+      set_y_angle(angle);
     }
   } else {
     for (auto& child : mChildren) {
@@ -327,9 +415,6 @@ bool GeometryNode::select(int id) {
 void GeometryNode::walk_gl(bool picking) const
 {
   glPushMatrix();
-  // std::cout <<"Drawing " << mName << std::endl;
-  // glLoadIdentity();
-  // glTranslated(0.0, 0.0, -2.0);
 
   double trans[] = {
     mTrans[0][0], mTrans[1][0], mTrans[2][0], mTrans[3][0], 
@@ -391,4 +476,40 @@ void GeometryNode::scale(const Vector3D& amount)
     mScale[2][2] = 1.0 * amount[2];
 
     mInvScale = mScale.invert();
+}
+
+void GeometryNode::undo(const std::set<int>& nodes) {
+  if (nodes.count(mId)) {
+    if (mParent->is_joint()) {
+      ((JointNode*)mParent)->undo_joint();
+      // std::cout << "X angle: " << -node.mXAngle << std::endl;
+      // std::cout << "Y angle: " << -node.mYAngle << std::endl;
+      // ((JointNode*)mParent)->set_x_angle(-node.mXAngle);
+      // ((JointNode*)mParent)->set_y_angle(-node.mYAngle);
+    } else {
+      std::cerr << "PARENT IS NOT A JOINT. WE'RE FUCKED." << std::endl;
+    }
+  } else {
+    for (auto& child : mChildren) {
+      child->undo(nodes);
+    }
+  }
+}
+
+void GeometryNode::redo(const std::set<int>& nodes){
+  if (nodes.count(mId)) {
+    if (mParent->is_joint()) {
+      ((JointNode*)mParent)->redo_joint();
+
+      // std::cout << "X angle: " << -node.mXAngle << std::endl;
+      // std::cout << "Y angle: " << -node.mYAngle << std::endl;
+      // ((JointNode*)mParent)->set_x_angle(-node.mXAngle);
+      // ((JointNode*)mParent)->set_y_angle(-node.mYAngle);
+
+    }
+  } else {
+    for (auto& child : mChildren) {
+      child->redo(nodes);
+    }
+  }
 }

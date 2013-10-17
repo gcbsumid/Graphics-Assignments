@@ -79,7 +79,7 @@ LeftForearm:scale(0.55, 1.5, 0.55)
 LeftForearm:translate(0.0, -1.5, 0.0)
 LeftForearm:set_material(grey)
 
-LeftWristJoint = gr.joint('LeftWristJoint', {-25.0, 0.0, 45.0}, {0.0, 0.0, 0.0});
+LeftWristJoint = gr.joint('LeftWristJoint', {-45.0, 0.0, 75.0}, {0.0, 0.0, 0.0});
 LeftWristJoint:translate(0.0, -1.5, 0.0)
 LeftForearm:add_child(LeftWristJoint)
 
@@ -110,7 +110,7 @@ RightForearm:scale(0.55, 1.5, 0.55)
 RightForearm:translate(0.0, -1.5, 0.0)
 RightForearm:set_material(grey)
 
-RightWristJoint = gr.joint('RightWristJoint', {-25.0, 0.0, 45.0}, {0.0, 0.0, 0.0});
+RightWristJoint = gr.joint('RightWristJoint', {-45.0, 0.0, 75.0}, {0.0, 0.0, 0.0});
 RightWristJoint:translate(0.0, -1.5, 0.0)
 RightForearm:add_child(RightWristJoint)
 

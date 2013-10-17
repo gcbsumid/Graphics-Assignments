@@ -1,6 +1,8 @@
 #ifndef CS488_VIEWER_HPP
 #define CS488_VIEWER_HPP
 
+#include <vector>
+#include <set>
 #include <gtkmm.h>
 #include <gtkglmm.h>
 #include "scene.hpp"
@@ -18,10 +20,10 @@ public:
   // call when the time is right.
   void invalidate();
 
-  void toggleTrackball();
-  void toggleZBuffer();
-  void toggleBackfaceCulling();
-  void toggleFrontfaceCulling();
+  bool toggleTrackball();
+  bool toggleZBuffer();
+  bool toggleBackfaceCulling();
+  bool toggleFrontfaceCulling();
   
   // Resetting stuff
   void resetPosition();
@@ -74,6 +76,13 @@ private:
   void selection(GdkEventButton* event);
   void processHits(int hits, unsigned int buffer[]);
 
+  void performTransform(Point2D last, Point2D cur);
+  void calcRotVec(float fNewX, float fNewY,
+                 float fOldX, float fOldY,
+                 float fDiameter,
+                 float *fVecX, float *fVecY, float *fVecZ);
+  void axisRotMatrix(float fVecX, float fVecY, float fVecZ, Matrix4x4& mNewMat);
+
   double tempAngle;
 
   SceneNode* mRoot;
@@ -95,6 +104,10 @@ private:
   bool mIsZBufferOn;
   bool mIsBackfaceCullingOn;
   bool mIsFrontfaceCullingOn;
+
+  std::vector<std::set<int>> mHistoryStack; 
+  std::set<int> mCurrentList;
+  int mCurrentHistoryNode;
 
   Mode mMode;
 };

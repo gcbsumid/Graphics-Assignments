@@ -19,9 +19,10 @@ Viewer::Viewer(SceneNode* node)
   , mIsButton2Active(false)
   , mIsButton3Active(false)
   , mIsTrackballOn(false)
-  , mIsZBufferOn(false)
-  , mIsBackfaceCullingOn(false)
+  , mIsZBufferOn(true) // TODO: change to false
+  , mIsBackfaceCullingOn(true)
   , mIsFrontfaceCullingOn(false)
+  , mCurrentHistoryNode(-1)
   , mMode(MODE_ENTIRE_OBJ)
 {
   Glib::RefPtr<Gdk::GL::Config> glconfig;
@@ -49,14 +50,13 @@ Viewer::Viewer(SceneNode* node)
              Gdk::BUTTON_PRESS_MASK      | 
              Gdk::BUTTON_RELEASE_MASK    |
              Gdk::VISIBILITY_NOTIFY_MASK);
-
-  // mRoot->reset_rotation();
-  // mRoot->reset_translation();
 }
 
 Viewer::~Viewer()
 {
   // Nothing to do here right now.
+
+  // TODO: delet undo/redo stack
 }
 
 void Viewer::invalidate()
@@ -66,32 +66,24 @@ void Viewer::invalidate()
   get_window()->invalidate_rect( allocation, false);
 }
 
-void Viewer::toggleTrackball() {
-  if (mIsTrackballOn) 
-    mIsTrackballOn = false;
-  else 
-    mIsTrackballOn = true;
+bool Viewer::toggleTrackball() {
+  mIsTrackballOn = !mIsTrackballOn;
+  return mIsTrackballOn;
 }
 
-void Viewer::toggleZBuffer() {
-  if (mIsZBufferOn) 
-    mIsZBufferOn = false;
-  else 
-    mIsZBufferOn = true;
+bool Viewer::toggleZBuffer() {
+  mIsZBufferOn = !mIsZBufferOn;
+  return mIsZBufferOn;
 }
 
-void Viewer::toggleBackfaceCulling() {
-  if (mIsBackfaceCullingOn) 
-    mIsBackfaceCullingOn = false;
-  else 
-    mIsBackfaceCullingOn = true;
+bool Viewer::toggleBackfaceCulling() {
+  mIsBackfaceCullingOn = !mIsBackfaceCullingOn;
+  return mIsBackfaceCullingOn;
 }
 
-void Viewer::toggleFrontfaceCulling() {
-  if (mIsFrontfaceCullingOn) 
-    mIsFrontfaceCullingOn = false;
-  else 
-    mIsFrontfaceCullingOn = true;
+bool Viewer::toggleFrontfaceCulling() {
+  mIsFrontfaceCullingOn = !mIsFrontfaceCullingOn;
+  return mIsFrontfaceCullingOn;
 }
 
 void Viewer::resetPosition() {
@@ -104,6 +96,8 @@ void Viewer::resetOrientation() {
 
 void Viewer::resetJoints() {
   mRoot->reset_joints();
+  mHistoryStack.clear();
+  mRoot->unselect_all();
 }
 
 void Viewer::resetAll() {
@@ -129,7 +123,7 @@ void Viewer::on_realize()
 
   glShadeModel(GL_SMOOTH);
   glClearColor( 0.0, 0.0, 0.0, 0.0 );
-  glEnable(GL_DEPTH_TEST);
+  // glEnable(GL_DEPTH_TEST);
 
   gldrawable->gl_end();
 }
@@ -151,6 +145,8 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   // Enabling the options
   if (mIsZBufferOn) {
     glEnable(GL_DEPTH_TEST);
+  } else {
+    glDisable(GL_DEPTH_TEST);
   }
   if (mIsBackfaceCullingOn || mIsFrontfaceCullingOn) {
     glEnable(GL_CULL_FACE);
@@ -159,9 +155,11 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
       glCullFace(GL_FRONT_AND_BACK);
     } else if (mIsBackfaceCullingOn) {
       glCullFace(GL_BACK);
-    } else {
+    } else if (mIsFrontfaceCullingOn) {
       glCullFace(GL_FRONT);
     }
+  } else {
+    glDisable(GL_CULL_FACE);
   }
   glEnable(GL_NORMALIZE);
   glDisable(GL_LIGHTING);
@@ -188,7 +186,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
   // Draw stuff
-  glTranslated(mPosition[0], mPosition[1], mPosition[2]);
+  // glTranslated(mPosition[0], mPosition[1], mPosition[2]);
   // glRotated(mRotateX, 1.0, 0.0, 0.0);
   // glRotated(mRotateY, 0.0, 1.0, 0.0);
 
@@ -253,7 +251,6 @@ bool Viewer::on_button_press_event(GdkEventButton* event)
 
 void Viewer::processHits(int hits, unsigned int buffer[]) {
   unsigned int *ptr;
-  // GLuint ii, jj, names;
 
   ptr = (unsigned int*) buffer;
 
@@ -261,15 +258,7 @@ void Viewer::processHits(int hits, unsigned int buffer[]) {
   int id = 0;
   for (int i = 0; i < hits; ++i) {
     GLuint numOfNamesInHit = *ptr;
-    // printf( "Number: %d\n\tMin Z: %g\n\tMax Z: %g\n", numOfNamesInHit, (float)*(ptr+1)/0x7fffffff, (float)*(ptr+2)/0x7fffffff);
     float curMinZ = (float) *(ptr+1) / 0x7fffffff;
-
-    // for (unsigned int j = 0; j < numOfNamesInHit; j++) {
-
-    //   printf("Names: %d \n", *(ptr+3+j));
-    //   // std::cout << "\tNames: " << *ptr << std::endl;
-    //   // ptr++;
-    // }
 
     ptr += 3 + numOfNamesInHit - 1;
 
@@ -278,10 +267,19 @@ void Viewer::processHits(int hits, unsigned int buffer[]) {
       minZ = curMinZ;
     }
     ptr++;
-    // ptr += numOfNamesInHit;
   }
-  // std::cout << "The id that I found is: " << id << std::endl;
   mRoot->select(id);
+
+  // this is for the undo/redo stack
+  if (mRoot->isSelected(id)) {
+    if (!mCurrentList.count(id)) {
+      mCurrentList.insert(id);
+    }
+  } else {
+    if (mCurrentList.count(id)) {
+      mCurrentList.erase(id);
+    }
+  }
 }
 
 void Viewer::selection(GdkEventButton* event) {
@@ -304,6 +302,7 @@ void Viewer::selection(GdkEventButton* event) {
   glMatrixMode(GL_MODELVIEW);
   gluPerspective(40.0, (GLfloat)get_width()/(GLfloat)get_height(), 0.1, 1000.0);
 
+  // glTranslated(mPosition[0], mPosition[1], mPosition[2]);
   mRoot->walk_gl(true);
 
   glMatrixMode(GL_PROJECTION);
@@ -325,16 +324,61 @@ bool Viewer::on_button_release_event(GdkEventButton* event)
   // std::cerr << "Stub: Button " << event->button << " released" << std::endl;
 
   // Joint selection mdoe and left button click
-  if (mMode == MODE_JOINTS && event->button == 1) {
-    selection(event);
+  if (mMode == MODE_JOINTS) {
+    if (event->button == 1) {
+      selection(event);
+    } else if ((event->button == 2 || event->button == 3) && !mCurrentList.empty()) {
+      if (!mHistoryStack.empty() && mCurrentHistoryNode < mHistoryStack.size()-1) {
+        while (mCurrentHistoryNode < mHistoryStack.size() - 1) {
+          mHistoryStack.pop_back();
+        }
+      }
+
+      mHistoryStack.push_back(mCurrentList);
+      mCurrentHistoryNode++;
+      mRoot->push_stack();
+
+      // std::cout << "mCurrentHistoryNode: " << mCurrentHistoryNode << " mHistoryStack Size: " << mHistoryStack.size() << std::endl;
+      if (event->button == 2) {
+        mRotateX = 0;
+      } else {
+        mRotateY = 0;
+      }
+
+    //   // int last = mHistoryStack.size() - 1;
+    //   // std::cout << "Last: " << last << " and current: " << mCurrentHistoryNode << std::endl;
+    //   // while (last != mCurrentHistoryNode && !mHistoryStack.empty()) {
+    //   //   delete mHistoryStack.at(last);
+    //   //   mHistoryStack.pop_back();
+    //   //   last--;
+    //   // }
+
+
+    //   // mHistoryStack.push_back(new HistoryNode(mRotateX, 0.0, mListOfSelectedNodes));
+    //   // mCurrentHistoryNode++;
+    //   std::cout << "New Size: " << mHistoryStack.size() << " Current Node: " << mCurrentHistoryNode << std::endl;
+    // } else if (event->button == 3 && !mListOfSelectedNodes.empty()) {
+    //   if (!mHistoryStack.empty() && mCurrentList < mHistoryStack.size()-1) {
+    //     while (mCurrentList < mHistoryStack.size() - 1) {
+    //       mHistoryStack.pop_back();
+    //     }
+    //   }
+
+    //   mHistoryStack.push_back(mListOfSelectedNodes);
+    //   mCurrentList++;
+    //   mRoot->push_stack();
+    //   mRotateY = 0;
+    }
   }
 
   mCurrentMousePos = Point2D(event->x, event->y);
-  mRotateX = 0.0;
-  mRotateY = 0.0;
-  mIsButton1Active = false;
-  mIsButton2Active = false;
-  mIsButton3Active = false;
+  mPosition = Vector3D(0.0, 0.0, 0.0);
+  if (event->button == 1)
+    mIsButton1Active = false;
+  else if (event->button == 2)
+    mIsButton2Active = false;
+  else if (event->button == 3) 
+    mIsButton3Active = false;
   return true;
 }
 
@@ -350,31 +394,35 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
     if (mIsButton1Active) {
       deltaX *= 0.1;
       deltaY *= 0.1;
-      mPosition = Vector3D(mPosition[0] + deltaX, mPosition[1] - deltaY, mPosition[2]);
+      // mPosition = Vector3D(mPosition[0] + deltaX, mPosition[1] - deltaY, mPosition[2]);
+      mPosition = Vector3D(deltaX, -deltaY, mPosition[2]);
     }  
 
     if (mIsButton2Active) {
       deltaY *= 0.1;
-      mPosition = Vector3D(mPosition[0], mPosition[1], mPosition[2] + deltaY);
+      // mPosition = Vector3D(mPosition[0], mPosition[1], mPosition[2] + deltaY);
+      mPosition = Vector3D(mPosition[0], mPosition[1], deltaY);
     }
 
+    mRoot->translate(mPosition);
     if (mIsButton3Active) {
-      mRotateX = deltaX;
-      mRotateY = deltaY;
+      performTransform(mLastMousePos, mCurrentMousePos);
+
+      // mRotateX = deltaX;
+      // mRotateY = deltaY;
+      // mRoot->rotate('x', mRotateX);
+      // mRoot->rotate('y', mRotateY);
     }
 
-    // mRoot->translate(mPosition);
-    mRoot->rotate('x', mRotateX);
-    mRoot->rotate('y', mRotateY);
   } else {
     if (mIsButton2Active) {
-      mRotateX = -deltaY;
-      mRoot->selection_rotate('x', mRotateX);
+      mRotateX += -deltaY;
+      mRoot->selection_rotate('x', -deltaY);
     }
 
     if (mIsButton3Active) {
-      mRotateY = -deltaX;
-      mRoot->selection_rotate('y', mRotateY);
+      mRotateY += -deltaX;
+      mRoot->selection_rotate('y', -deltaX);
     }
   }
 
@@ -423,11 +471,30 @@ void Viewer::draw_trackball_circle()
 }
 
 void Viewer::undo() {
+  if(mHistoryStack.empty() || mCurrentHistoryNode < 0){
+    // std::cerr << "Viewer Error: Stack is empty or node < 0." << std::endl;
+    return;
+  }
 
+  mRoot->undo(mHistoryStack.at(mCurrentHistoryNode));
+  mCurrentHistoryNode--;
+
+  // HistoryNode* node = mHistoryStack.at(mCurrentHistoryNode--);
+  // mRoot->undo(*node);
+
+  // std::cout << "Undo! New Current: " << mCurrentHistoryNode << " Size: " << mHistoryStack.size() << std::endl;
 }
 
 void Viewer::redo() {
-  
+  if(mHistoryStack.empty() || mCurrentHistoryNode >= (int)mHistoryStack.size()-1) {
+    // std::cerr << "Viewer Error: Stack is empty or node < 0." << std::endl;
+    return;
+  }
+
+  mCurrentHistoryNode++;
+  mRoot->redo(mHistoryStack.at(mCurrentHistoryNode));
+  // std::cout << "Undo! New Current: " << mCurrentHistoryNode << " Size: " << mHistoryStack.size() << std::endl;
+  // TODO
 }
 
 void Viewer::draw_sphere() {
@@ -506,4 +573,157 @@ void Viewer::draw_sphere() {
   }
 
   glPopMatrix();
+}
+
+// TRACKBALL stuff
+void Viewer::performTransform(Point2D last, Point2D cur) {
+  float  fRotVecX, fRotVecY, fRotVecZ;
+  Matrix4x4 mNewMat;
+  float fDiameter;
+  int iCenterX, iCenterY;
+  float fNewModX, fNewModY, fOldModX, fOldModY;
+
+  /* vCalcRotVec expects new and old positions in relation to the center of the
+   * trackball circle which is centered in the middle of the window and
+   * half the smaller of nWinWidth or nWinHeight.
+   */
+  float width = get_width();
+  float height = get_height();
+
+  fDiameter = (width < height) ? width * 0.5 : height * 0.5;
+  iCenterX = width / 2;
+  iCenterY = height / 2;
+  fOldModX = last[0] - iCenterX;
+  fOldModY = last[1] - iCenterY;
+  fNewModX = cur[0] - iCenterX;
+  fNewModY = cur[1] - iCenterY;
+
+  calcRotVec(fNewModX, fNewModY,
+                  fOldModX, fOldModY,
+                  fDiameter,
+                  &fRotVecX, &fRotVecY, &fRotVecZ);
+  /* Negate Y component since Y axis increases downwards
+   * in screen space and upwards in OpenGL.
+   */
+  axisRotMatrix(fRotVecX, -fRotVecY, fRotVecZ, mNewMat);
+
+  // Since all these matrices are meant to be loaded
+  // into the OpenGL matrix stack, we need to transpose the
+  // rotation matrix (since OpenGL wants rows stored
+  // in columns)
+  // mNewMat.transpose();
+  mRoot->multiplyRotation(mNewMat);
+  // vRightMultiply(mRotations, mNewMat);
+}
+
+void Viewer::calcRotVec(float fNewX, float fNewY,
+                 float fOldX, float fOldY,
+                 float fDiameter,
+                 float *fVecX, float *fVecY, float *fVecZ) {
+   // long  nXOrigin, nYOrigin;
+   float fNewVecX, fNewVecY, fNewVecZ,        /* Vector corresponding to new mouse location */
+         fOldVecX, fOldVecY, fOldVecZ,        /* Vector corresponding to old mouse location */
+         fLength;
+
+   /* Vector pointing from center of virtual trackball to
+    * new mouse position
+    */
+   fNewVecX    = fNewX * 2.0 / fDiameter;
+   fNewVecY    = fNewY * 2.0 / fDiameter;
+   fNewVecZ    = (1.0 - fNewVecX * fNewVecX - fNewVecY * fNewVecY);
+
+   /* If the Z component is less than 0, the mouse point
+    * falls outside of the trackball which is interpreted
+    * as rotation about the Z axis.
+    */
+   if (fNewVecZ < 0.0) {
+      fLength = sqrt(1.0 - fNewVecZ);
+      fNewVecZ  = 0.0;
+      fNewVecX /= fLength;
+      fNewVecY /= fLength;
+   } else {
+      fNewVecZ = sqrt(fNewVecZ);
+   }
+
+   /* Vector pointing from center of virtual trackball to
+    * old mouse position
+    */
+   fOldVecX    = fOldX * 2.0 / fDiameter;
+   fOldVecY    = fOldY * 2.0 / fDiameter;
+   fOldVecZ    = (1.0 - fOldVecX * fOldVecX - fOldVecY * fOldVecY);
+ 
+   /* If the Z component is less than 0, the mouse point
+    * falls outside of the trackball which is interpreted
+    * as rotation about the Z axis.
+    */
+   if (fOldVecZ < 0.0) {
+      fLength = sqrt(1.0 - fOldVecZ);
+      fOldVecZ  = 0.0;
+      fOldVecX /= fLength;
+      fOldVecY /= fLength;
+   } else {
+      fOldVecZ = sqrt(fOldVecZ);
+   }
+
+   /* Generate rotation vector by calculating cross product:
+    * 
+    * fOldVec x fNewVec.
+    * 
+    * The rotation vector is the axis of rotation
+    * and is non-unit length since the length of a crossproduct
+    * is related to the angle between fOldVec and fNewVec which we need
+    * in order to perform the rotation.
+    */
+   *fVecX = fOldVecY * fNewVecZ - fNewVecY * fOldVecZ;
+   *fVecY = fOldVecZ * fNewVecX - fNewVecZ * fOldVecX;
+   *fVecZ = fOldVecX * fNewVecY - fNewVecX * fOldVecY;
+}
+
+void Viewer::axisRotMatrix(float fVecX, float fVecY, float fVecZ, Matrix4x4& mNewMat) {
+    float fRadians, fInvLength, fNewVecX, fNewVecY, fNewVecZ;
+
+    /* Find the length of the vector which is the angle of rotation
+     * (in radians)
+     */
+    fRadians = sqrt(fVecX * fVecX + fVecY * fVecY + fVecZ * fVecZ);
+
+    /* If the vector has zero length - return the identity matrix */
+    if (fRadians > -0.000001 && fRadians < 0.000001) {
+
+        mNewMat = Matrix4x4();
+        return;
+    }
+
+    /* Normalize the rotation vector now in preparation for making
+     * rotation matrix. 
+     */
+    fInvLength = 1 / fRadians;
+    fNewVecX   = fVecX * fInvLength;
+    fNewVecY   = fVecY * fInvLength;
+    fNewVecZ   = fVecZ * fInvLength;
+
+    /* Create the arbitrary axis rotation matrix */
+    double dSinAlpha = sin(fRadians);
+    double dCosAlpha = cos(fRadians);
+    double dT = 1 - dCosAlpha;
+
+    mNewMat[0][0] = dCosAlpha + fNewVecX*fNewVecX*dT;
+    mNewMat[0][1] = fNewVecX*fNewVecY*dT + fNewVecZ*dSinAlpha;
+    mNewMat[0][2] = fNewVecX*fNewVecZ*dT - fNewVecY*dSinAlpha;
+    mNewMat[0][3] = 0;
+
+    mNewMat[1][0] = fNewVecX*fNewVecY*dT - dSinAlpha*fNewVecZ;
+    mNewMat[1][1] = dCosAlpha + fNewVecY*fNewVecY*dT;
+    mNewMat[1][2] = fNewVecY*fNewVecZ*dT + dSinAlpha*fNewVecX;
+    mNewMat[1][3] = 0;
+
+    mNewMat[2][0] = fNewVecZ*fNewVecX*dT + dSinAlpha*fNewVecY;
+    mNewMat[2][1] = fNewVecZ*fNewVecY*dT - dSinAlpha*fNewVecX;
+    mNewMat[2][2] = dCosAlpha + fNewVecZ*fNewVecZ*dT;
+    mNewMat[2][3] = 0;
+
+    mNewMat[3][0] = 0;
+    mNewMat[3][1] = 0;
+    mNewMat[3][2] = 0;
+    mNewMat[3][3] = 1;
 }

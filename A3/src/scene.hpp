@@ -2,9 +2,26 @@
 #define SCENE_HPP
 
 #include <list>
+#include <set>
+#include <vector>
 #include "algebra.hpp"
 #include "primitive.hpp"
 #include "material.hpp"
+
+struct HistoryNode {
+  HistoryNode() 
+    : mXAngle(0.0)
+    , mYAngle(0.0) {}
+
+  HistoryNode(double x, double y, std::set<int> nodes) 
+    : mXAngle(x)
+    , mYAngle(y)
+    , mNodes(nodes) {}
+
+  double mXAngle;
+  double mYAngle;
+  std::set<int> mNodes;
+};
 
 class SceneNode {
 public:
@@ -82,6 +99,9 @@ public:
   virtual void selection_rotate(char axis, double angle);
   virtual void reset_joints();
   virtual void unselect_all();
+  virtual void push_stack();
+  virtual void multiplyRotation(Matrix4x4 mat);
+  bool isSelected(const int id);
 
   void setParent(SceneNode* node) {
     mParent = node;
@@ -90,6 +110,11 @@ public:
   // Returns true if and only if this node is a JointNode
   virtual bool is_joint() const;
   void apply_select_to_children(bool isSelect);
+
+  // virtual void undo(const HistoryNode& node);
+  virtual void undo(const std::set<int>& nodes);
+  virtual void redo(const std::set<int>& nodes);
+
   
 protected:
 
@@ -132,12 +157,23 @@ public:
   virtual void selection_rotate(char axis, double angle);
   virtual void reset_joints();
 
+  virtual void set_x_angle(double angle);
+  virtual void set_y_angle(double angle);
+
+  virtual void push_stack();
+
+  void undo_joint();
+  void redo_joint();
+
   struct JointRange {
     double min, init, max;
   };
 
   
 protected:
+
+  std::vector<std::pair<double, double>> mAngleHistory;
+  int mCurrentAngle;
   double mAngleX; 
   double mAngleY;
   JointRange mJointX, mJointY;
@@ -152,6 +188,9 @@ public:
   virtual void walk_gl(bool picking = false) const;
   virtual void scale(const Vector3D& amount);
   virtual bool select(int id);
+  // virtual void undo(const HistoryNode& node);
+  virtual void undo(const std::set<int>& nodes);
+  virtual void redo(const std::set<int>& nodes);
 
   const Material* get_material() const;
   Material* get_material();

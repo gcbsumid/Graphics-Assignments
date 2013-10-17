@@ -33,7 +33,7 @@ s2:set_material(blue)
 s3 = gr.sphere('s3')
 rootnode:add_child(s3)
 s3:scale(0.1, 0.1, 2.0)
-s3:translate(0.0, -2.0, 1.0)
+s3:translate(0.0, -2.0, 2.0)
 s3:set_material(green)
 
 rootnode:translate(-0.75, 0.25, -10.0)

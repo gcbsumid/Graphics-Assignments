@@ -1,7 +1,12 @@
 #include "appwindow.hpp"
+#include <sstream>
 
 AppWindow::AppWindow(SceneNode* node)
   : mViewer(node)
+  , mTrack(false)
+  , mZBuff(false)
+  , mBack(false)
+  , mFront(false)
 {
   set_title("Advanced Ergonomics Laboratory");
 
@@ -41,13 +46,13 @@ AppWindow::AppWindow(SceneNode* node)
   
   // Set up Options Menu
   mMenuOptions.items().push_back(MenuElem("_Circle", Gtk::AccelKey("c"), 
-    sigc::mem_fun(mViewer, &Viewer::toggleTrackball)));
+    sigc::mem_fun(*this, &AppWindow::toggleTrackball)));
   mMenuOptions.items().push_back(MenuElem("_Z-buffer", Gtk::AccelKey("z"), 
-    sigc::mem_fun(mViewer, &Viewer::toggleZBuffer)));
+    sigc::mem_fun(*this, &AppWindow::toggleZBuffer)));
   mMenuOptions.items().push_back(MenuElem("_Backface Culling", Gtk::AccelKey("b"), 
-    sigc::mem_fun(mViewer, &Viewer::toggleBackfaceCulling)));
+    sigc::mem_fun(*this, &AppWindow::toggleBackfaceCulling)));
   mMenuOptions.items().push_back(MenuElem("_Frontface Culling", Gtk::AccelKey("f"), 
-    sigc::mem_fun(mViewer, &Viewer::toggleFrontfaceCulling)));
+    sigc::mem_fun(*this, &AppWindow::toggleFrontfaceCulling)));
 
 
   // Set up the menu bar
@@ -64,10 +69,43 @@ AppWindow::AppWindow(SceneNode* node)
   // Put the menubar on the top, and make it as small as possible
   mVBox.pack_start(mMenubar, Gtk::PACK_SHRINK);
 
+  LabelUpdate();
   // Put the viewer below the menubar. pack_start "grows" the widget
   // by default, so it'll take up the rest of the window.
-  mViewer.set_size_request(1000, 1000);
+  mViewer.set_size_request(500, 500);
   mVBox.pack_start(mViewer);
+  mVBox.pack_start(mToggles, Gtk::PACK_SHRINK);
 
   show_all();
+}
+
+
+void AppWindow::toggleTrackball() {
+  mTrack = mViewer.toggleTrackball();
+  LabelUpdate();
+}
+
+void AppWindow::toggleZBuffer() {
+  mZBuff = mViewer.toggleZBuffer();
+  LabelUpdate();
+}
+
+void AppWindow::toggleBackfaceCulling() {
+  mBack = mViewer.toggleBackfaceCulling();
+  LabelUpdate();
+}
+
+void AppWindow::toggleFrontfaceCulling() {
+  mFront = mViewer.toggleFrontfaceCulling();
+  LabelUpdate();
+}
+
+void AppWindow::LabelUpdate() {
+  std::stringstream ss;
+  ss << "Trackball: " << ((mTrack) ? "true" : "false") << std::endl;
+  ss << "Z Buffer: " << ((mZBuff) ? "true" : "false") << std::endl;
+  ss << "Backface Culling: " << ((mBack) ? "true" : "false") << std::endl;
+  ss << "Frontface Culling: " << ((mFront) ? "true" : "false") << std::endl;
+
+  mToggles.set_text(ss.str());
 }

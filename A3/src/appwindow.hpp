@@ -12,6 +12,13 @@ public:
 protected:
 
 private:
+  void LabelUpdate();
+
+  void toggleTrackball();
+  void toggleZBuffer();
+  void toggleBackfaceCulling();
+  void toggleFrontfaceCulling();
+
   // A "vertical box" which holds everything in our window
   Gtk::VBox mVBox;
 
@@ -25,8 +32,15 @@ private:
 
   Gtk::RadioMenuItem::Group mMenuGroup;
 
+  Gtk::Label mToggles;
+
   // The main OpenGL area
   Viewer mViewer;
+
+  bool mTrack;
+  bool mZBuff;
+  bool mBack;
+  bool mFront;
 };
 
 #endif
