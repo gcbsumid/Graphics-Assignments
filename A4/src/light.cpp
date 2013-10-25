@@ -10,6 +10,13 @@ Light::Light()
   falloff[2] = 0.0;
 }
 
+double Light::getAttenuation(Point3D pt) {
+  Vector3D pointToLight = pt - position;
+  double dist = pointToLight.length();
+
+  return 1/(falloff[0] + falloff[1]*dist + falloff[2]*dist*dist);
+}
+
 std::ostream& operator<<(std::ostream& out, const Light& l)
 {
   out << "L[" << l.colour << ", " << l.position << ", ";

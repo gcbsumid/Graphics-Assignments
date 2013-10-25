@@ -8,21 +8,6 @@
 #include "primitive.hpp"
 #include "material.hpp"
 
-struct HistoryNode {
-  HistoryNode() 
-    : mXAngle(0.0)
-    , mYAngle(0.0) {}
-
-  HistoryNode(double x, double y, std::set<int> nodes) 
-    : mXAngle(x)
-    , mYAngle(y)
-    , mNodes(nodes) {}
-
-  double mXAngle;
-  double mYAngle;
-  std::set<int> mNodes;
-};
-
 class SceneNode {
 public:
   SceneNode(const std::string& name);

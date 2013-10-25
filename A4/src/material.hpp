@@ -7,6 +7,7 @@ class Material {
 public:
   virtual ~Material();
   virtual void apply_gl() const = 0;
+  virtual Colour getColour() const = 0;
 
 protected:
   Material()
@@ -20,6 +21,7 @@ public:
   virtual ~PhongMaterial();
 
   virtual void apply_gl() const;
+  virtual Colour getColour() const;
 
 private:
   Colour m_kd;

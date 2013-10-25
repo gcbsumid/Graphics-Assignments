@@ -7,6 +7,7 @@
 // Represents a simple point light.
 struct Light {
   Light();
+  double getAttenuation(Point3D pt);
   
   Colour colour;
   Point3D position;

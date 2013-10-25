@@ -487,4 +487,22 @@ inline std::ostream& operator <<(std::ostream& os, const Colour& c)
   return os << "c<" << c.R() << "," << c.G() << "," << c.B() << ">";
 }
 
+struct Ray
+{
+  Ray(Point3D orig, Vector3D vec) : mOrigin(orig), mDirection(vec) {}
+  Ray() {}
+
+  Point3D mOrigin;
+  Vector3D mDirection;
+};
+
+struct Plane
+{
+  Plane(Point3D pt, Vector3D vec) : mPoint(pt), mNormal(vec) {}
+  Plane() {}
+
+  Point3D mPoint;
+  Vector3D mNormal;
+};
+
 #endif // CS488_ALGEBRA_HPP

@@ -17,3 +17,7 @@ void PhongMaterial::apply_gl() const
 {
   // Perform OpenGL calls necessary to set up this material.
 }
+
+Colour PhongMaterial::getColour() const {
+  return m_kd;
+}

@@ -29,3 +29,13 @@ std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
   std::cerr << "});" << std::endl;
   return out;
 }
+
+IntersectObj* Mesh::intersect(Ray ray) {
+  // TODO
+  return NULL;
+}
+
+bool Mesh::isInShadow(Ray ray) const {
+  // TODO
+  return false;
+}

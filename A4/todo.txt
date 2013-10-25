@@ -1,0 +1,6 @@
+TODO:
+ - PhongMaterial::apply_gl() at material.cpp
+ - SceneNode::rotate() at scene.cpp
+ - SceneNode::scale() at scene.cpp
+ - SceneNode::translate() at scene.cpp
+ - a4_render() at a4.cpp

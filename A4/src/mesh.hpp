@@ -13,6 +13,9 @@ public:
        const std::vector< std::vector<int> >& faces);
 
   typedef std::vector<int> Face;
+
+  virtual IntersectObj* intersect(Ray ray);
+  virtual bool isInShadow(Ray ray) const;
   
 private:
   std::vector<Point3D> m_verts;
