@@ -25,7 +25,9 @@ IntersectObj* SceneNode::intersect(Ray ray) {
   IntersectObj* minimum = NULL;
   for(auto& child : mChildren) {
     IntersectObj* intersectedObj = child->intersect(ray);
-    if (minimum == NULL) {
+    if (intersectedObj == NULL) {
+      continue;
+    } else if (minimum == NULL) {
       minimum = intersectedObj;
     } else if (minimum->mDistance > intersectedObj->mDistance) {
       delete minimum;
@@ -39,9 +41,9 @@ IntersectObj* SceneNode::intersect(Ray ray) {
   // glPopMatrix();
 }
 
-bool SceneNode::isInShadow(Ray ray) const {
+bool SceneNode::isInShadow(Ray ray, SceneNode* node) const {
   for (auto& child : mChildren) {
-    if (child->isInShadow(ray)) {
+    if (child->isInShadow(ray, node)) {
       return true;
     }
   }
@@ -163,7 +165,9 @@ IntersectObj* JointNode::intersect(Ray ray) {
   IntersectObj* minimum = NULL;
   for(auto& child : mChildren) {
     IntersectObj* intersectedObj = child->intersect(ray);
-    if (minimum == NULL) {
+    if (intersectedObj == NULL) {
+      continue;
+    } else if (minimum == NULL) {
       minimum = intersectedObj;
     } else if (minimum->mDistance > intersectedObj->mDistance) {
       delete minimum;
@@ -218,7 +222,9 @@ IntersectObj* GeometryNode::intersect(Ray ray)
 
   for(auto& child : mChildren) {
     IntersectObj* intersectedObj = child->intersect(ray);
-    if (minimum == NULL) {
+    if (intersectedObj == NULL) {
+      continue;
+    } else if (minimum == NULL) {
       minimum = intersectedObj;
     } else if (minimum->mDistance > intersectedObj->mDistance) {
       delete minimum;
@@ -231,12 +237,12 @@ IntersectObj* GeometryNode::intersect(Ray ray)
   return minimum;
 }
 
-bool GeometryNode::isInShadow(Ray ray) const {
-  if (mPrimitive->isInShadow(ray)) {
+bool GeometryNode::isInShadow(Ray ray, SceneNode* node) const {
+  if ((node->get_name() != get_name()) && mPrimitive->isInShadow(ray)) {
     return true;
   }
   for (auto& child : mChildren) {
-    if (child->isInShadow(ray)) {
+    if (child->isInShadow(ray, node)) {
       return true;
     }
   }

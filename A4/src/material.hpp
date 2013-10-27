@@ -7,7 +7,9 @@ class Material {
 public:
   virtual ~Material();
   virtual void apply_gl() const = 0;
-  virtual Colour getColour() const = 0;
+  virtual Colour get_diffuse() const = 0;
+  virtual Colour get_specular() const = 0;
+  virtual double get_shininess() const = 0;
 
 protected:
   Material()
@@ -21,11 +23,13 @@ public:
   virtual ~PhongMaterial();
 
   virtual void apply_gl() const;
-  virtual Colour getColour() const;
+  Colour get_diffuse() const;
+  Colour get_specular() const;
+  double get_shininess() const;
 
 private:
-  Colour m_kd;
-  Colour m_ks;
+  Colour m_kd;  // diffuse
+  Colour m_ks;  // specular
 
   double m_shininess;
 };

@@ -18,6 +18,9 @@ public:
   virtual bool isInShadow(Ray ray) const;
   
 private:
+
+  bool rayIntersectTriangle(Ray ray, const Face& face, double& t) const;
+
   std::vector<Point3D> m_verts;
   std::vector<Face> m_faces;
 

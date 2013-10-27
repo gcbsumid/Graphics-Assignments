@@ -1,0 +1,25 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.d
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# Compiled executables
+
+# Sublime Projects
+*.sublime-project
+*.sublime-workspace
+
+# CTags
+*.tags*
+
+

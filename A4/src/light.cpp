@@ -11,10 +11,13 @@ Light::Light()
 }
 
 double Light::getAttenuation(Point3D pt) {
+  // light intensity is 1. Intensity is included in the attenuation'
   Vector3D pointToLight = pt - position;
   double dist = pointToLight.length();
+  // std::cout << "dist:" << dist << std::endl;
 
-  return 1/(falloff[0] + falloff[1]*dist + falloff[2]*dist*dist);
+  // std::cout << "Attenuation: " << 1/(falloff[2] + falloff[1]*dist + falloff[0]*dist*dist) << std::endl;
+  return (1/(falloff[0] + falloff[1]*dist + falloff[2]*dist*dist));
 }
 
 std::ostream& operator<<(std::ostream& out, const Light& l)

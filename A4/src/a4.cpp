@@ -4,7 +4,7 @@
 #include "material.hpp"
 #include <cmath>
 
-const double SCREEN_DISTANCE = 1.0;
+const double SCREEN_DISTANCE = 256.0;
 // const double M_PI = 3.14159265;
 const int DEPTH = 4;
 
@@ -36,7 +36,6 @@ void a4_render(// What to render
 
 
   // Fill in raytracing code here.
-
   std::cerr << "Stub: a4_render(" << root << ",\n     "
             << filename << ", " << width << ", " << height << ",\n     "
             << eye << ", " << view << ", " << up << ", " << fov << ",\n     "
@@ -51,20 +50,31 @@ void a4_render(// What to render
   // For now, just make a sample image.
 
   Image img(width, height, 3);
+  Vector3D normalizedView = view;
+  normalizedView.normalize();
+  std::cout << "normalized view: " << normalizedView << std::endl;
 
   double fov_radians = (fov * M_PI) / 180.0;
-  double widthOfViewport = std::tan(fov_radians / 2.0) * SCREEN_DISTANCE;
-  double heightOfViewport = widthOfViewport / (width * height);
-  Vector3D left_vec = view.cross(up);
+  double distance = width / std::tan(fov_radians / 2.0);
+  // std::cout << "widthOfViewport " << widthOfViewport << std::endl;
+  // std::cout << "heightOfViewport " << heightOfViewport << std::endl;
+  std::cout << "fov_radians " << fov_radians << std::endl;
+  Vector3D left_vec = normalizedView.cross(up);
+  std::cout << "left " << left_vec << std::endl;
+  std::cout << "up " << up << std::endl;
+
 
   for (int y = 0; y < height; y++) {
-    for (int x = 0; x < height; x++) {
-      Point3D screenPoint = eye + SCREEN_DISTANCE*view + 
-                            (x -(width/2)) * left_vec + 
-                            (y -(height/2)) * up;
+    for (int x = 0; x < width; x++) {
+      // Point3D screenPoint = eye + SCREEN_DISTANCE*normalizedView + 
+      //                       ((x / width * widthOfViewport) -(widthOfViewport/2)) * left_vec + 
+      //                       ((y / height * heightOfViewport) -(heightOfViewport/2)) * up;
+      Point3D screenPoint = eye + (distance * normalizedView) + (x - width/2)*left_vec + (y - height/2)*up;
+      Vector3D eyeToScreen = screenPoint - eye;
 
-      Ray ray(screenPoint, screenPoint - eye);
-      ray.mDirection.normalize();
+      Ray ray(eye, eyeToScreen);
+      // ray.mDirection.normalize();
+      // std::cout << "eyeToScreen: " << ray.mDirection << std::endl;
 
       Colour final_colour(0.0);
       int currentDepth = 0;
@@ -77,11 +87,18 @@ void a4_render(// What to render
 
         if (obj == NULL && currentDepth == 0) {
           // didn't intersect anything. 
-          final_colour = Colour((double)y / height, 0.0, 0.0);
-          continue;
+          // final_colour = Colour(0.0, 0.0, 0.0);
+          final_colour = Colour((double)y / height, (double)y / height, 1.0);
+          break;
         } else if (obj== NULL) {
-          continue;
+          break;;
         }
+
+        // std::cout << "Sphere: " << obj->mNode->get_name() << std::endl;
+        double ambientcoeffficient = 0.2;
+        Material* mat = ((GeometryNode*)(obj->mNode))->get_material();
+        Colour ambient = mat->get_diffuse() * ambientcoeffficient; // Note: light.ambientcoeffficient = 0.2
+        computed_colour = computed_colour + ambient;
 
         for (auto& light : lights) {
           // TODO: secondary rays from obj->mPoint to light source
@@ -89,19 +106,48 @@ void a4_render(// What to render
           Ray lightRay(obj->mPoint, lightToPoint);
           lightToPoint.normalize();
 
+          double diffuseCoefficient = obj->mNormal.dot(lightToPoint);
           // check if they are pointing in the same direction.
           // if they are, light does not reach this point
-          double diffuseCoefficient = obj->mNormal.dot(lightToPoint);
+          
           if (diffuseCoefficient <= 0.0) {
             continue;
           }
 
+          if (obj->mNode->get_name() == "s4") {
+            std::cout << "S4 is getting: " << final_colour << std::endl;
+          }
           // Not normalized
-          if (root->isInShadow(lightRay)) {
+          if (!root->isInShadow(lightRay, obj->mNode)) {
+            /* 
+             *      LIGHT
+             *   so what we want is:
+             *    kaIa = attenuation coef * light.colour -> Ambient
+             *    kd(l . n)Id = mat.diffuse * diffuse coef -> Diffuse 
+             *    ks(r . v)^pIs = mat.specular * (reflection of light on normal . ray.mDirection)^mshininess
+             *
+             */
 
-            computed_colour = computed_colour + (light->colour * light->getAttenuation(obj->mPoint));
-            Material* mat = ((GeometryNode*)(obj->mNode))->get_material();
-            computed_colour = computed_colour + mat->getColour();
+            // std::cout << "\tAmbient: " << ambient << std::endl;
+            // Colour lightAmbience = diffuseCoefficient * (light->colour);
+            Colour diffuse = diffuseCoefficient * (mat->get_diffuse() + light->colour) * 0.5;
+            // std::cout << "\tDiffuse: " << diffuse << std::endl;
+
+            float reflCoef = 2.0 * (lightToPoint.dot(obj->mNormal));
+            Vector3D reflection = lightToPoint - reflCoef * obj->mNormal;
+            Vector3D rayDir = ray.mDirection;
+            rayDir.normalize();
+            reflection.normalize();
+            // std::cout << "specular coef: " << std::pow(rayDir.dot(reflection), mat->get_shininess());
+
+            // Colour specular = mat->get_specular() * std::pow(rayDir.dot(reflection), mat->get_shininess());
+            Colour specular = (diffuseCoefficient > 0.0) ? mat->get_specular() * std::pow(rayDir.dot(reflection), mat->get_shininess()) : 0.0;
+
+            // std::cout << "\tSpecular: " << specular << std::endl;
+            // std::cout << "Attenuation: " << light->getAttenuation(obj->mPoint) << std::endl;
+            // std::cout << "computed_colour: " << computed_colour << " and Attenuation(diffuse+specular): " << (light->getAttenuation(obj->mPoint) * (diffuse + specular)) << std::endl;
+            computed_colour = computed_colour + light->getAttenuation(obj->mPoint) * (diffuse + specular);
+            // std::cout << "computed_colour: " << computed_colour << std::endl;
           }
         }
 
@@ -114,6 +160,7 @@ void a4_render(// What to render
         float reflect = 2.0 * (ray.mDirection.dot(obj->mNormal));
         ray.mOrigin = obj->mPoint;
         ray.mDirection = ray.mDirection - reflect * obj->mNormal;
+        delete obj;
 
         // TODO: reflection
         // once you find the closest intersection if it exists,
@@ -128,10 +175,10 @@ void a4_render(// What to render
         // Calculate new reflection ray
       }
 
-      std::cout << "Pixel: (" << x << ", " << y << "): " << final_colour << std::endl;
-      img(x, y, 0) = final_colour.R();
-      img(x, y, 1) = final_colour.G();
-      img(x, y, 2) = final_colour.B();
+      // std::cout << "Pixel: (" << x << ", " << y << "): " << final_colour << std::endl;
+      img(x, height - y - 1, 0) = final_colour.R();
+      img(x, height - y - 1, 1) = final_colour.G();
+      img(x, height - y - 1, 2) = final_colour.B();
       // // Red: increasing from top to bottom
       // img(x, y, 0) = (double)y / height;
       // // Green: increasing from left to right

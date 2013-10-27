@@ -14,7 +14,7 @@ public:
   virtual ~SceneNode();
 
   virtual IntersectObj* intersect(Ray ray);
-  virtual bool isInShadow(Ray ray) const;
+  virtual bool isInShadow(Ray ray, SceneNode* node) const;
 
   const Matrix4x4& get_transform() const { return mTrans; }
   const Matrix4x4& get_inverse() const { return mInvTrans; }
@@ -49,6 +49,10 @@ public:
 
   // Returns true if and only if this node is a JointNode
   virtual bool is_joint() const;
+  
+  std::string get_name() const {
+    return mName;
+  }
   
 protected:
   
@@ -94,7 +98,7 @@ public:
   virtual ~GeometryNode();
 
   virtual IntersectObj* intersect(Ray ray);
-  virtual bool isInShadow(Ray ray) const;
+  virtual bool isInShadow(Ray ray, SceneNode* node) const;
   virtual void scale(const Vector3D& amount);
 
   const Material* get_material() const;
@@ -109,6 +113,6 @@ protected:
   Material* mMaterial;
   Primitive* mPrimitive;
   Matrix4x4 mScale;
-};
+}; 
 
 #endif
