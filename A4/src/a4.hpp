@@ -6,6 +6,8 @@
 #include "scene.hpp"
 #include "light.hpp"
 
+void clamp(double& val, double min, double max);
+
 void a4_render(// What to render
                SceneNode* root,
                // Where to output the image

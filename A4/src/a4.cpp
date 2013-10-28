@@ -8,6 +8,14 @@ const double SCREEN_DISTANCE = 256.0;
 // const double M_PI = 3.14159265;
 const int DEPTH = 4;
 
+void clamp(double& val, double min, double max) {
+  if (val < min) {
+    val = min;
+  } else if (val > max) {
+    val = max;
+  }
+}
+
 void a4_render(// What to render
                SceneNode* root,
                // Where to output the image
@@ -63,9 +71,22 @@ void a4_render(// What to render
   std::cout << "left " << left_vec << std::endl;
   std::cout << "up " << up << std::endl;
 
+  std::cout << "Recalculating box: " << std::endl;
+  root->recalculate_bounding_box();
+  std::cout << "Display Bounding box: " << std::endl;
+  root->DisplayBoundingBox();
+
+  int max = height * width;
+  int onePercent = max * 0.01;
+  int percentDone = 0;
+  int counter = 0;
 
   for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
+    for (int x = 0; x < width; x++, counter++) {
+      if (counter % onePercent == 0) {
+        std::cerr << (counter/(double)onePercent) << " percent done." << std::endl;
+      }
+
       // Point3D screenPoint = eye + SCREEN_DISTANCE*normalizedView + 
       //                       ((x / width * widthOfViewport) -(widthOfViewport/2)) * left_vec + 
       //                       ((y / height * heightOfViewport) -(heightOfViewport/2)) * up;
@@ -102,21 +123,23 @@ void a4_render(// What to render
 
         for (auto& light : lights) {
           // TODO: secondary rays from obj->mPoint to light source
-          Vector3D lightToPoint = obj->mPoint - light->position;
+          Vector3D lightToPoint = light->position - obj->mPoint;
           Ray lightRay(obj->mPoint, lightToPoint);
           lightToPoint.normalize();
+          obj->mNormal.normalize();
 
           double diffuseCoefficient = obj->mNormal.dot(lightToPoint);
           // check if they are pointing in the same direction.
           // if they are, light does not reach this point
+          clamp(diffuseCoefficient, 0.0, 1.0);
           
           if (diffuseCoefficient <= 0.0) {
             continue;
           }
 
-          if (obj->mNode->get_name() == "s4") {
-            std::cout << "S4 is getting: " << final_colour << std::endl;
-          }
+          // if (obj->mNode->get_name() == "s1") {
+          //   std::cout << "S4 is getting: " << final_colour << std::endl;
+          // }
           // Not normalized
           if (!root->isInShadow(lightRay, obj->mNode)) {
             /* 
@@ -140,8 +163,8 @@ void a4_render(// What to render
             reflection.normalize();
             // std::cout << "specular coef: " << std::pow(rayDir.dot(reflection), mat->get_shininess());
 
-            // Colour specular = mat->get_specular() * std::pow(rayDir.dot(reflection), mat->get_shininess());
-            Colour specular = (diffuseCoefficient > 0.0) ? mat->get_specular() * std::pow(rayDir.dot(reflection), mat->get_shininess()) : 0.0;
+            Colour specular = mat->get_specular() * std::pow(rayDir.dot(reflection), mat->get_shininess());
+            // Colour specular = (diffuseCoefficient > 0.0) ? mat->get_specular() * std::pow(rayDir.dot(reflection), mat->get_shininess()) : 0.0;
 
             // std::cout << "\tSpecular: " << specular << std::endl;
             // std::cout << "Attenuation: " << light->getAttenuation(obj->mPoint) << std::endl;

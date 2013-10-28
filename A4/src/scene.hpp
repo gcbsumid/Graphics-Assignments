@@ -13,6 +13,7 @@ public:
   SceneNode(const std::string& name);
   virtual ~SceneNode();
 
+  virtual bool check_bounding_box(Ray ray);
   virtual IntersectObj* intersect(Ray ray);
   virtual bool isInShadow(Ray ray, SceneNode* node) const;
 
@@ -34,18 +35,20 @@ public:
   void add_child(SceneNode* child)
   {
     mChildren.push_back(child);
+    // recalculate_bounding_box();
   }
 
   void remove_child(SceneNode* child)
   {
     mChildren.remove(child);
+    // recalculate_bounding_box();
   }
 
   // Callbacks to be implemented.
   // These will be called from Lua.
-  void rotate(char axis, double angle);
-  void scale(const Vector3D& amount);
-  void translate(const Vector3D& amount);
+  virtual void rotate(char axis, double angle);
+  virtual void scale(const Vector3D& amount);
+  virtual void translate(const Vector3D& amount);
 
   // Returns true if and only if this node is a JointNode
   virtual bool is_joint() const;
@@ -54,15 +57,27 @@ public:
     return mName;
   }
   
+  static void compare_bounding_boxes(AABB& initial, AABB other);
+  virtual AABB recalculate_bounding_box();
+  void DisplayBoundingBox();
+
 protected:
-  
   // Useful for picking
   int mId;
   std::string mName;
 
   // Transformations
+  Matrix4x4 mTranslate;
+  Matrix4x4 mScale;
+  Matrix4x4 mRotate;
+  Matrix4x4 mInvTranslate;
+  Matrix4x4 mInvScale;
+  Matrix4x4 mInvRotate;
+
   Matrix4x4 mTrans;
   Matrix4x4 mInvTrans;
+
+  AABB mBoundingBox;
 
   // Hierarchy
   typedef std::list<SceneNode*> ChildList;
@@ -73,8 +88,6 @@ class JointNode : public SceneNode {
 public:
   JointNode(const std::string& name);
   virtual ~JointNode();
-
-  virtual IntersectObj* intersect(Ray ray);
 
   virtual bool is_joint() const;
 
@@ -110,9 +123,13 @@ public:
   }
 
 protected:
+
+  virtual AABB recalculate_bounding_box();
+
   Material* mMaterial;
   Primitive* mPrimitive;
-  Matrix4x4 mScale;
+  // Matrix4x4 mScale;
+  // Matrix4x4 mInvScale;
 }; 
 
 #endif

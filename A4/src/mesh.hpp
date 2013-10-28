@@ -16,10 +16,13 @@ public:
 
   virtual IntersectObj* intersect(Ray ray);
   virtual bool isInShadow(Ray ray) const;
-  
+
+  bool checkAgainstBoundingBox(Ray ray);
+
 private:
 
-  bool rayIntersectTriangle(Ray ray, const Face& face, double& t) const;
+  bool rayIntersectFace(Ray ray, const Face& face, double& t) const;
+  bool rayIntersectTriangle(Ray ray, const Point3D& v0, const Point3D& v1, const Point3D& v2, double& t) const;
 
   std::vector<Point3D> m_verts;
   std::vector<Face> m_faces;
