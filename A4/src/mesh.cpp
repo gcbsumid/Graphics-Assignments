@@ -1,7 +1,8 @@
 #include "mesh.hpp"
 #include <iostream>
 
-static const double EPSILON = 1e-8;
+static const double EPSILON = 1e-6;
+static const double BIG_NUMBER = 1e8;
 
 Mesh::Mesh(const std::vector<Point3D>& verts,
            const std::vector< std::vector<int> >& faces)
@@ -13,19 +14,25 @@ Mesh::Mesh(const std::vector<Point3D>& verts,
   for (auto& vert : m_verts) {
     if (vert[0] < mBoundingBox.mMin[0]) {
       mBoundingBox.mMin[0] = vert[0];
-    } else if (vert[0] > mBoundingBox.mMax[0]) {
+    }
+
+    if (vert[0] > mBoundingBox.mMax[0]) {
       mBoundingBox.mMax[0] = vert[0];
     }
 
     if (vert[1] < mBoundingBox.mMin[1]) {
       mBoundingBox.mMin[1] = vert[1];
-    } else if (vert[1] > mBoundingBox.mMax[1]) {
+    }
+
+    if (vert[1] > mBoundingBox.mMax[1]) {
       mBoundingBox.mMax[1] = vert[1];
     }
 
     if (vert[2] < mBoundingBox.mMin[2]) {
       mBoundingBox.mMin[2] = vert[2];
-    } else if (vert[2] > mBoundingBox.mMax[2]) {
+    }
+
+    if (vert[2] > mBoundingBox.mMax[2]) {
       mBoundingBox.mMax[2] = vert[2];
     }
   }
@@ -56,98 +63,67 @@ std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
 }
 
 
-bool Mesh::checkAgainstBoundingBox(Ray ray) {
+bool Mesh::checkAgainstBoundingBox(Ray ray) const {
 
-  double t_min = -100000.0;
-  double t_max = 100000.0;
+  double tmin = (mBoundingBox.mMin[0] - ray.mOrigin[0]) / ray.mDirection[0];
+  double tmax = (mBoundingBox.mMax[0] - ray.mOrigin[0]) / ray.mDirection[0];
 
-  Point3D position = Point3D(
-                      (mBoundingBox.mMin[0] + mBoundingBox.mMax[0])/2.0,
-                      (mBoundingBox.mMin[1] + mBoundingBox.mMax[1])/2.0,
-                      (mBoundingBox.mMin[2] + mBoundingBox.mMax[2])/2.0
-                      );
-
-  // std::cout << "position: " << position << std::endl;
-  Vector3D delta = position - ray.mOrigin;
-  // std::cout << "delta: " << delta << std::endl;
-
-  // Compute the intersections with 2 planes that delimit the x Axis
-  Vector3D xAxis = Vector3D(1.0, 0, 0);
-  Vector3D yAxis = Vector3D(0, 1.0, 0);
-  Vector3D zAxis = Vector3D(0, 0, 1.0);
-  double e_x = xAxis.dot(delta);
-  double f_x = ray.mDirection.dot(xAxis);
-  double e_y = yAxis.dot(delta);
-  double f_y = ray.mDirection.dot(yAxis);
-  double e_z = zAxis.dot(delta);
-  double f_z = ray.mDirection.dot(zAxis);
-
-  double t1_x = (e_x + mBoundingBox.mMin[0])/f_x; // intersection with left plane
-  double t2_x = (e_x + mBoundingBox.mMax[0])/f_x; // intersection with right plane
-  double t1_y = (e_y + mBoundingBox.mMin[1])/f_y; // intersection with top plane
-  double t2_y = (e_y + mBoundingBox.mMax[1])/f_y; // intersection with bottom plane
-  double t1_z = (e_z + mBoundingBox.mMin[2])/f_z; // intersection with front plane
-  double t2_z = (e_z + mBoundingBox.mMax[2])/f_z; // intersection with back plane
-
-  // X axis
-  if (t1_x > t2_x) {
-    double temp = t1_x;
-    t1_x = t2_x;
-    t2_x = temp;
+  if (tmin > tmax) {
+    double temp = tmin;
+    tmin = tmax;
+    tmax = temp;
   }
 
-  if (t2_x < t_max) {
-    t_max = t2_x;
+  double tymin = (mBoundingBox.mMin[1] - ray.mOrigin[1]) / ray.mDirection[1];
+  double tymax = (mBoundingBox.mMax[1] - ray.mOrigin[1]) / ray.mDirection[1];
+
+  if (tymin > tymax) {
+    double temp = tymin;
+    tymin = tymax;
+    tymax = temp;
   }
 
-  if (t1_x > t_min) { 
-    t_min = t1_x;
-  }
-
-  // Y axis
-  if (t1_y > t2_y) {
-    double temp = t1_y;
-    t1_y = t2_y;
-    t2_y = temp;
-  }
-
-  if (t2_y < t_max) {
-    t_max = t2_y;
-  }
-
-  if (t1_y > t_min) { 
-    t_min = t1_y;
-  }
-
-  // Z Axis
-  if (t1_z > t2_z) {
-    double temp = t1_z;
-    t1_z = t2_z;
-    t2_z = temp;
-  }
-
-  if (t2_z < t_max) {
-    t_max = t2_z;
-  }
-
-  if (t1_z > t_min) { 
-    t_min = t1_z;
-  }
-
-  // std::cout << "t_max: " << t_max << " t_min: " << t_min << std::endl;
-  if (t_max < t_min) {
+  if ((tmin > tymax) || (tymin > tmax)) {
     return false;
   }
 
+  if (tymin > tmin) {
+    tmin = tymin;
+  }
 
+  if (tymax < tmax) {
+    tmax = tymax;
+  }
+
+  double tzmin = (mBoundingBox.mMin[2] - ray.mOrigin[2]) / ray.mDirection[2];
+  double tzmax = (mBoundingBox.mMax[2] - ray.mOrigin[2]) / ray.mDirection[2];
+
+  if (tzmin > tzmax) {
+    double temp = tzmin;
+    tzmin = tzmax;
+    tzmax = temp;
+  }
+
+  if ((tmin > tzmax) || (tzmin > tmax)) {
+    return false;
+  }
+
+  if (tzmin > tmin) {
+    tmin = tzmin;
+  }
+
+  if (tzmax < tmax) {
+    tmax = tzmax;
+  }
 
   return true;
 }
 
 IntersectObj* Mesh::intersect(Ray ray) {
-  // if (!checkAgainstBoundingBox(ray)) {
-  //   return NULL;
-  // }
+  if (!checkAgainstBoundingBox(ray)) {
+    return NULL;
+  }
+  std::cout << "I'm here!" << std::endl;
 
   IntersectObj* obj = new IntersectObj();
 
@@ -180,6 +156,11 @@ IntersectObj* Mesh::intersect(Ray ray) {
   obj->mNormal = v0v1.cross(v0v2);
   obj->mNormal.normalize();
   obj->mDistance = getDistance(obj->mPoint, ray.mOrigin);
+
+  if (obj->mDistance > BIG_NUMBER) {
+    delete obj;
+    return NULL;
+  }
 
   return obj;
 }
@@ -246,6 +227,10 @@ bool Mesh::rayIntersectTriangle(
 }
 
 bool Mesh::isInShadow(Ray ray) const {
+  if (!checkAgainstBoundingBox(ray)) {
+    return false;
+  }
+
   double t = 1000000.0;
 
   for (unsigned int i = 0; i < m_faces.size(); ++i) {

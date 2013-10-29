@@ -13,7 +13,6 @@ public:
   SceneNode(const std::string& name);
   virtual ~SceneNode();
 
-  virtual bool check_bounding_box(Ray ray);
   virtual IntersectObj* intersect(Ray ray);
   virtual bool isInShadow(Ray ray, SceneNode* node) const;
 
@@ -56,10 +55,6 @@ public:
   std::string get_name() const {
     return mName;
   }
-  
-  static void compare_bounding_boxes(AABB& initial, AABB other);
-  virtual AABB recalculate_bounding_box();
-  void DisplayBoundingBox();
 
 protected:
   // Useful for picking
@@ -76,8 +71,6 @@ protected:
 
   Matrix4x4 mTrans;
   Matrix4x4 mInvTrans;
-
-  AABB mBoundingBox;
 
   // Hierarchy
   typedef std::list<SceneNode*> ChildList;
@@ -123,8 +116,6 @@ public:
   }
 
 protected:
-
-  virtual AABB recalculate_bounding_box();
 
   Material* mMaterial;
   Primitive* mPrimitive;

@@ -34,7 +34,6 @@ Sphere::~Sphere()
 }
 
 IntersectObj* Sphere::intersect(Ray ray) {
-  // TODO
   Point3D center(0.0, 0.0, 0.0);
   double A = ray.mDirection.dot(ray.mDirection);
   Vector3D centerToEye = ray.mOrigin - center;
@@ -46,15 +45,13 @@ IntersectObj* Sphere::intersect(Ray ray) {
   size_t numOfRealRoots = quadraticRoots(A, B, C, roots);
   
   if (numOfRealRoots == 0) {
-    // std::cout << "NO REAL ROOTS!" << std::endl;
     return NULL;
   }
 
-  // std::cout << "REAL ROOTS!" << std::endl;
   IntersectObj* obj = new IntersectObj();
   double t = BIG_NUMBER;
   for (unsigned int i = 0; i < numOfRealRoots; ++i) {
-    if (roots[i] < 0.0) {
+    if (roots[i] < EPSILON) {
       continue;
     }
     if (roots[i] < t) {
@@ -66,7 +63,11 @@ IntersectObj* Sphere::intersect(Ray ray) {
   obj->mPoint = ray.mOrigin + (t * ray.mDirection);
   obj->mNormal = obj->mPoint - center;
   obj->mDistance = getDistance(obj->mPoint, ray.mOrigin);
-  // obj->mNormal.normalize();
+
+  if (obj->mDistance > BIG_NUMBER) {
+    delete obj;
+    return NULL;
+  }
 
   return obj;
 }
@@ -151,7 +152,7 @@ IntersectObj* Cube::intersect(Ray ray) {
     t_max = t2_x;
   }
 
-  if (t1_x > t_min) { 
+  if (t1_x > t_min && t1_x > EPSILON) { 
     t_min = t1_x;
     Point3D intersectionPoint = ray.mOrigin + (t_min * ray.mDirection);
     obj->mDistance = getDistance(obj->mPoint, ray.mOrigin);
@@ -172,7 +173,7 @@ IntersectObj* Cube::intersect(Ray ray) {
     t_max = t2_y;
   }
 
-  if (t1_y > t_min) { 
+  if (t1_y > t_min && t1_y > EPSILON) { 
     t_min = t1_y;
     Point3D intersectionPoint = ray.mOrigin + (t_min * ray.mDirection);
     obj->mDistance = getDistance(obj->mPoint, ray.mOrigin);
@@ -193,7 +194,7 @@ IntersectObj* Cube::intersect(Ray ray) {
     t_max = t2_z;
   }
 
-  if (t1_z > t_min) { 
+  if (t1_z > t_min && t1_z > EPSILON) { 
     t_min = t1_z;
     Point3D intersectionPoint = ray.mOrigin + (t_min * ray.mDirection);
     obj->mDistance = getDistance(obj->mPoint, ray.mOrigin);
@@ -201,7 +202,7 @@ IntersectObj* Cube::intersect(Ray ray) {
     obj->mNormal = curAxis;
   }
 
-  if (t_max < t_min) {
+  if (t_max < t_min || obj->mDistance > BIG_NUMBER) {
     delete obj;
     return NULL;
   }
@@ -278,12 +279,7 @@ bool Cube::isInShadow(Ray ray) const {
     t_min = t1_z;
   }
 
-
-  // IntersectObj* obj = new IntersectObj();
-  // Point3D intersectionPoint = ray.mOrigin + (t_min * ray.mDirection);
-  // double distance = getDistance(intersectionPoint, ray.mOrigin);
   if (t_min < EPSILON) {
-    std::cout << "t_min: " << t_min << std::endl;
     return false;
   }
 
@@ -309,21 +305,16 @@ NonhierSphere::~NonhierSphere()
 IntersectObj* NonhierSphere::intersect(Ray ray) {
 
   double A = ray.mDirection.dot(ray.mDirection);
-  // std::cout << "Ray Origin: " << ray.mOrigin << std::endl;
   Vector3D centerToEye = ray.mOrigin - mPos;
-  // std::cout << "Center To Eye: " << centerToEye << std::endl;
-  // centerToEye.normalize();
   double B = 2 * centerToEye.dot(ray.mDirection);
   double C = centerToEye.dot(centerToEye) - (mRadius * mRadius);
   double roots[2];
 
-  // std::cout << "A: " << A << " B: " << B << " C: " << C << std::endl;
 
   // Calate for real roots
   size_t numOfRealRoots = quadraticRoots(A, B, C, roots);
   
   if (numOfRealRoots == 0) {
-    // std::cout << "NO REAL ROOTS." << std::endl;
     // There are no intersections with this object
     return NULL;
   }
@@ -332,20 +323,23 @@ IntersectObj* NonhierSphere::intersect(Ray ray) {
   IntersectObj* obj = new IntersectObj();
   double t = BIG_NUMBER;
   for (unsigned int i = 0; i < numOfRealRoots; ++i) {
-    if (roots[i] < 0.0) {
+    if (roots[i] < EPSILON) {
       continue;
     }
     if (roots[i] < t) {
       t = roots[i];
     }
   }
-  // std::cout << std::endl;
 
   // Get the point of intersection
   obj->mPoint = ray.mOrigin + (t * ray.mDirection);
   obj->mNormal = obj->mPoint - mPos;
   obj->mDistance = getDistance(obj->mPoint, ray.mOrigin);
-  // obj->mNormal.normalize();
+
+  if (obj->mDistance > BIG_NUMBER) {
+    delete obj;
+    return NULL;
+  }
 
   return obj;
 }
@@ -353,7 +347,6 @@ IntersectObj* NonhierSphere::intersect(Ray ray) {
 bool NonhierSphere::isInShadow(Ray ray) const {
   double A = ray.mDirection.dot(ray.mDirection);
   Vector3D centerToEye = ray.mOrigin - mPos;
-  // centerToEye.normalize();
   double B = 2 * centerToEye.dot(ray.mDirection);
   double C = centerToEye.dot(centerToEye) - (mRadius * mRadius);
   double roots[2];
@@ -430,7 +423,7 @@ IntersectObj* NonhierBox::intersect(Ray ray) {
     t_max = t2_x;
   }
 
-  if (t1_x > t_min) { 
+  if (t1_x > t_min && t1_x > EPSILON) { 
     t_min = t1_x;
     Point3D intersectionPoint = ray.mOrigin + (t_min * ray.mDirection);
     obj->mPoint = intersectionPoint;
@@ -451,7 +444,7 @@ IntersectObj* NonhierBox::intersect(Ray ray) {
     t_max = t2_y;
   }
 
-  if (t1_y > t_min) { 
+  if (t1_y > t_min && t1_y > EPSILON) { 
     t_min = t1_y;
     Point3D intersectionPoint = ray.mOrigin + (t_min * ray.mDirection);
     obj->mPoint = intersectionPoint;
@@ -472,7 +465,7 @@ IntersectObj* NonhierBox::intersect(Ray ray) {
     t_max = t2_z;
   }
 
-  if (t1_z > t_min) { 
+  if (t1_z > t_min && t1_z > EPSILON) { 
     t_min = t1_z;
     Point3D intersectionPoint = ray.mOrigin + (t_min * ray.mDirection);
     obj->mPoint = intersectionPoint;
@@ -480,7 +473,7 @@ IntersectObj* NonhierBox::intersect(Ray ray) {
     obj->mNormal = curAxis;
   }
 
-  if (t_max < t_min) {
+  if (t_max < t_min || obj->mDistance > BIG_NUMBER) {
     delete obj;
     return NULL;
   }
@@ -559,7 +552,6 @@ bool NonhierBox::isInShadow(Ray ray) const {
   }
 
   if (t_min < EPSILON) {
-    std::cout << "t_min: " << t_min << std::endl;
     return false;
   }
 
@@ -572,9 +564,6 @@ bool NonhierBox::isInShadow(Ray ray) const {
 }
 
 bool NonhierBox::PointOnBoxFace(Point3D pt, Point3D corner1, Point3D corner2) {
-  // std::cout << "Point: " << pt << std::endl;
-  // std::cout << "Corner1: " << corner1 << std::endl;
-  // std::cout << "Corner2: " << corner2 << std::endl;
   double min_x = std::min(corner1[0], corner2[0]);
   double max_x = std::max(corner1[0], corner2[0]);
   double min_y = std::min(corner1[1], corner2[1]);
@@ -586,6 +575,5 @@ bool NonhierBox::PointOnBoxFace(Point3D pt, Point3D corner1, Point3D corner2) {
     pt[2] >= min_z && pt[2] <= max_z) {
     return true;
   }
-  // std::cout << "I'm returning false. " << std::endl;
   return false;
 }

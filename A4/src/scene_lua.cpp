@@ -82,6 +82,10 @@ struct gr_material_ud {
   Material* material;
 };
 
+struct gr_refl_material_ud {
+  Material* material;
+};
+
 // The "userdata" type for a light. Objects of this type will be
 // allocated by Lua to represent lights.
 struct gr_light_ud {
@@ -390,6 +394,33 @@ int gr_material_cmd(lua_State* L)
   return 1;
 }
 
+// Create a reflectivematerial
+extern "C"
+int gr_refl_material_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  
+  gr_refl_material_ud* data = (gr_refl_material_ud*)lua_newuserdata(L, sizeof(gr_refl_material_ud));
+  data->material = 0;
+  
+  double kd[3], ks[3];
+  get_tuple(L, 1, kd, 3);
+  get_tuple(L, 2, ks, 3);
+
+  double shininess = luaL_checknumber(L, 3);
+  double reflectiveness = luaL_checknumber(L, 4);
+  
+  data->material = new ReflectivePhongMaterial(Colour(kd[0], kd[1], kd[2]),
+                                     Colour(ks[0], ks[1], ks[2]),
+                                     shininess,
+                                     reflectiveness);
+
+  luaL_newmetatable(L, "gr.refl_material");
+  lua_setmetatable(L, -2);
+  
+  return 1;
+}
+
 // Add a child to a node
 extern "C"
 int gr_node_add_child_cmd(lua_State* L)
@@ -426,6 +457,29 @@ int gr_node_set_material_cmd(lua_State* L)
   
   gr_material_ud* matdata = (gr_material_ud*)luaL_checkudata(L, 2, "gr.material");
   luaL_argcheck(L, matdata != 0, 2, "Material expected");
+
+  Material* material = matdata->material;
+
+  self->set_material(material);
+
+  return 0;
+}
+
+// Set a node's material
+extern "C"
+int gr_node_set_refl_material_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  
+  gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
+  luaL_argcheck(L, selfdata != 0, 1, "Node expected");
+
+  GeometryNode* self = dynamic_cast<GeometryNode*>(selfdata->node);
+
+  luaL_argcheck(L, self != 0, 1, "Geometry node expected");
+  
+  gr_refl_material_ud* matdata = (gr_refl_material_ud*)luaL_checkudata(L, 2, "gr.refl_material");
+  luaL_argcheck(L, matdata != 0, 2, "Reflective Material expected");
 
   Material* material = matdata->material;
 
@@ -533,6 +587,7 @@ static const luaL_reg grlib_functions[] = {
   {"sphere", gr_sphere_cmd},
   {"joint", gr_joint_cmd},
   {"material", gr_material_cmd},
+  {"refl_material", gr_refl_material_cmd},
   // New for assignment 4
   {"cube", gr_cube_cmd},
   {"nh_sphere", gr_nh_sphere_cmd},
@@ -559,6 +614,7 @@ static const luaL_reg grlib_node_methods[] = {
   {"__gc", gr_node_gc_cmd},
   {"add_child", gr_node_add_child_cmd},
   {"set_material", gr_node_set_material_cmd},
+  {"set_refl_material", gr_node_set_refl_material_cmd},
   {"scale", gr_node_scale_cmd},
   {"rotate", gr_node_rotate_cmd},
   {"translate", gr_node_translate_cmd},

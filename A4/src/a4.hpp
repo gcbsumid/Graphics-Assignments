@@ -7,6 +7,19 @@
 #include "light.hpp"
 
 void clamp(double& val, double min, double max);
+Colour generate_primary_ray(Ray ray, SceneNode* root, 
+                            const std::list<Light*>& lights, 
+                            int depth, 
+                            double reflectionFactor,
+                            double x,
+                            double y);
+
+Colour generate_shadow_ray(Ray ray, 
+                           SceneNode* root, 
+                           const Colour& ambient, 
+                           const std::list<Light*>& lights, 
+                           IntersectObj* obj,
+                           double refl);
 
 void a4_render(// What to render
                SceneNode* root,

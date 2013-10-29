@@ -17,7 +17,7 @@ public:
   virtual IntersectObj* intersect(Ray ray);
   virtual bool isInShadow(Ray ray) const;
 
-  bool checkAgainstBoundingBox(Ray ray);
+  bool checkAgainstBoundingBox(Ray ray) const;
 
 private:
 
