@@ -123,7 +123,6 @@ IntersectObj* Mesh::intersect(Ray ray) {
   if (!checkAgainstBoundingBox(ray)) {
     return NULL;
   }
-  std::cout << "I'm here!" << std::endl;
 
   IntersectObj* obj = new IntersectObj();
 

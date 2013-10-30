@@ -58,10 +58,6 @@ Colour generate_primary_ray(Ray ray, SceneNode* root, const Colour& ambient, con
 
   IntersectObj* obj = root->intersect(ray);
 
-  if (obj && obj->mNode->get_name() == "smstellateddodecahedron") {
-    std::cout << "HERE." << std::endl;
-  }
-
   if (obj == NULL && depth == 0) {
     final_colour = final_colour + Colour(y, y, 1.0);
     reflectionFactor = 0.0;
@@ -105,16 +101,6 @@ void a4_render(// What to render
                const std::list<Light*>& lights
                )
 {
-  // std::cerr << "Stub: a4_render(" << root << ",\n     "
-  //           << filename << ", " << width << ", " << height << ",\n     "
-  //           << eye << ", " << view << ", " << up << ", " << fov << ",\n     "
-  //           << ambient << ",\n     {";
-
-  // for (std::list<Light*>::const_iterator I = lights.begin(); I != lights.end(); ++I) {
-  //   if (I != lights.begin()) std::cerr << ", ";
-  //   std::cerr << **I;
-  // }
-  // std::cerr << "});" << std::endl;
   
 
   Image img(width, height, 3);
@@ -132,7 +118,7 @@ void a4_render(// What to render
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++, counter++) {
       if (counter % onePercent == 0) {
-        std::cerr << (counter/(double)onePercent) << " percent done." << std::endl;
+        std::cerr << (counter/(double)onePercent) << " \%" << std::endl;
       }
 
       Point3D screenPoint = eye + (distance * normalizedView) + (x - width/2)*left_vec + (y - height/2)*up;

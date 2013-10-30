@@ -49,9 +49,9 @@ factor = 2.0/(2.76+3.637)
 
 cow_poly:set_material(hide)
 
-cow_poly:translate(0.0, -1.0, 0.0)
+-- cow_poly:translate(0.0, -1.0, 0.0)
 cow_poly:scale(factor, factor, factor)
-cow_poly:translate(0.0, 3.637, 0.0)
+-- cow_poly:translate(0.0, 3.637, 0.0)
 
 -- ##############################################
 -- the scene
@@ -114,5 +114,5 @@ end
 
 gr.render(scene,
 	  'macho_cows.png', 256, 256,
-	  {0, 2, 30}, {0, 0, -1}, {0, 1, 0}, 50,
+	  {0, 2, 30}, {0, 0, -1}, {0, 1, 0}, 90,
 	  {0.4, 0.4, 0.4}, {gr.light({200, 202, 430}, {0.8, 0.8, 0.8}, {1, 0, 0})})
