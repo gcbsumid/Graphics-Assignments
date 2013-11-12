@@ -1,2 +1,7 @@
-Assignments for CS488 Introduction to Graphics
+Graphics Projects.
+1. Tetris that uses 3D cubes
+2. Wireframe box. Calculate my own matrices including the perspective matrix and implement my own culling
+3. Create an 3D Interactive model
+4. Ray Tracer
+5. Final Project
 
