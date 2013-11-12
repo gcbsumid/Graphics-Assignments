@@ -3,11 +3,10 @@
 #include <stdexcept>
 #include <iostream>
 
-#include <GL/glew.h>
-#include <GL/glfw.h>
 #include <glm/glm.hpp>
 
 #include "Engine.hpp"
+#include "SDL_OGL.h" 
 
 using namespace std;
 
@@ -16,40 +15,14 @@ using namespace std;
 const glm::vec2 SCREEN_SIZE(800, 600);
 
 Engine::Engine() {
-    // Initialize GLFW
-    if (!glfwInit()) {
-        throw runtime_error("glfwInit failed.");
+
+    if (CreateGLWindow("Slender Boy", SCREEN_SIZE.x, SCREEN_SIZE.y, 16, 0) == 0) {
+        KillGLWindow();
+        throw runtime_error("Could not initialize OpenGL\n\n");
     }
 
-    glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
-    glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
-    if (!glfwOpenWindow(SCREEN_SIZE.x, SCREEN_SIZE.y, 8, 8, 8, 8, 16, 0, GLFW_WINDOW)) {
-        throw runtime_error("glfwOpenWindow failed. Hardware can't handle OpenGL 3.3");
-    }
-    glfwSetWindowTitle("Slender Boy");
-
-    // initialise GLEW
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
-        throw runtime_error("glewInit failed");
-    }
-
-    cout << "OpenGL version: " << glGetString(GL_VERSION) << endl;
-    cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
-    cout << "Vendor: " << glGetString(GL_VENDOR) << endl;
-    cout << "Renderer: " << glGetString(GL_RENDERER) << endl;
-
-    // GLFW settings
-    // glfwDisable(GLFW_MOUSE_CURSOR);
-    // glfwSetMousePos(0,0);
-    // glfwSetMouseWheel(0);
-    
-    if (!GLEW_VERSION_3_3) 
-        throw runtime_error("OpenGL 3.3 Api is not available.");
-
-    // TODO: Init GL_DEPTH_TEST, glDepthFunc(GL_LESS)
+    // Hide the mouse cursor 
+    // SDL_ShowCursor(0);
 
     CreateManagers();
     CreateObjects();
@@ -72,26 +45,45 @@ void Engine::Update(double timeTick) {
 
 void Engine::Run() {
     auto lastFrame = chrono::high_resolution_clock::now();
+    auto currentFrame = lastFrame;
 
-    while (glfwGetWindowParam(GLFW_OPENED)) {
-        auto currentFrame = chrono::high_resolution_clock::now();
-
+    Uint8* keys; 
+    bool done = false;
+    while (!done) {
+        currentFrame = chrono::high_resolution_clock::now();
         Update(chrono::duration_cast<chrono::milliseconds>(currentFrame-lastFrame).count() / 1000.0f);
 
-        // mGraphics->Render();
-        if (glfwGetKey('4')==GLFW_PRESS) {
-            cerr << "bitches." << endl;
-        }
+        mGraphics->Render();
 
-        if(glfwGetKey(GLFW_KEY_ESC) ==GLFW_PRESS ) {
-            glfwCloseWindow();
-        }
 
+        SDL_Event event;
+        if (SDL_PollEvent(&event)) {
+            switch (event.type) {
+                case SDL_KEYDOWN:
+                case SDL_KEYUP:
+                    // mInput->HandleKeyPress(event.key);
+                    break;
+                case SDL_MOUSEMOTION:
+                    // SDL_PeepEvents(&event, 9, SDL_GETEVENT, SDL_MOUSEMOTION);
+                    // mInput->HandleMouseMotion(event.motion);
+                    break;
+                case SDL_QUIT:
+                    done = true;
+                    break;
+                default:
+                    break;
+            }
+
+            keys = SDL_GetKeyState(NULL);
+            if (keys[SDLK_ESCAPE]) {
+                done = true;
+            }
+        }
         lastFrame = currentFrame;
     }
 
     // Cleanup and exits;
-    glfwTerminate();
+    KillGLWindow();
 }
 
 void Engine::CreateManagers() {

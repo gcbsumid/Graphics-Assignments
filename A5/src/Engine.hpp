@@ -1,21 +1,31 @@
-#ifndef ENGINE_H
-#define ENGINE_H
+#ifndef ENGINE_HPP
+#define ENGINE_HPP
 
 // Standard Library
 #include <memory>
 #include <map>
 
 // Own Code
-// #include "AIManager.h"
-// #include "InputManager.h"
-// #include "GraphicsManager.h"
-// #include "ResourceManager.h"
-// #include "SoundManager.h"
-// #include "PhysicsManager.h"
-// #include "Entity.h"
-// #include "Component.h"
+#include "AIManager.hpp"
+#include "InputManager.hpp"
+#include "GraphicsManager.hpp"
+#include "ResourceManager.hpp"
+// #include "SoundManager.hpp"
+// #include "PhysicsManager.hpp"
+#include "Entity.hpp"
+#include "Component.hpp"
 
-// typedef std::map<int, Entity*> ENTITY_LIST;
+typedef std::map<int, Entity*> ENTITY_LIST;
+
+// TODO: Entity.cpp
+// TODO: Component.cpp
+// TODO: GraphicsManager.cpp
+// TODO: ResourceManager.cpp
+// TODO: InputManager.cpp
+// TODO: AIManager.cpp
+// TODO: SoundManager.hpp/cpp
+// TODO: PhysicsManager.hpp/cpp
+
 
 class Engine {
 public:
@@ -40,12 +50,14 @@ private:
     // void CreatePlayer();
     // void CreateLight();
 
-    // std::unique_ptr<GraphicsManager> mGraphics;
-    // std::unique_ptr<InputManager> mInput;
-    // std::unique_ptr<ResourceManager> mResource;
-    // std::unique_ptr<AIManager> mAI;
+    std::unique_ptr<GraphicsManager> mGraphics;
+    std::unique_ptr<InputManager> mInput;
+    std::unique_ptr<ResourceManager> mResource;
+    std::unique_ptr<AIManager> mAI;
     // std::unique_ptr<SoundManager> mSound;
     // std::unique_ptr<PhysicsManager> mPhysics;
+
+    ENTITY_LIST mEntities;
 
     // Don't implement copy constructor
     Engine(const Engine&);
