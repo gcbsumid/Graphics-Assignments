@@ -1,0 +1,4 @@
+OpenGL version: 3.3.0 NVIDIA 304.88
+GLSL version: 3.30 NVIDIA via Cg compiler
+Vendor: NVIDIA Corporation
+Renderer: GeForce GTS 350M/PCIe/SSE2
