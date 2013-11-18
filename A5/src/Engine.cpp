@@ -10,7 +10,6 @@
 
 using namespace std;
 
-// TODO: Implement managers
 // TODO: Implement object creations
 const glm::vec2 SCREEN_SIZE(800, 600);
 
@@ -30,6 +29,9 @@ Engine::Engine() {
 
 Engine::~Engine() {
     // Todo: Delete Entities;
+    // for (auto& ent : mEntities) {
+    //     delete ent.second;
+    // }
 }
 
 void Engine::Update(double timeTick) {
@@ -53,7 +55,12 @@ void Engine::Run() {
         currentFrame = chrono::high_resolution_clock::now();
         Update(chrono::duration_cast<chrono::milliseconds>(currentFrame-lastFrame).count() / 1000.0f);
 
-        mGraphics->Render();
+        try {
+            mGraphics->Render();
+        } catch (exception& err) {
+            cerr << "Runtime Error: " << err.what() << endl;
+            break;
+        }
 
 
         SDL_Event event;
@@ -61,12 +68,15 @@ void Engine::Run() {
             switch (event.type) {
                 case SDL_KEYDOWN:
                 case SDL_KEYUP:
-                    // mInput->HandleKeyPress(event.key);
+                    mInput->HandleKeyPress(event.key);
                     break;
                 case SDL_MOUSEMOTION:
-                    // SDL_PeepEvents(&event, 9, SDL_GETEVENT, SDL_MOUSEMOTION);
-                    // mInput->HandleMouseMotion(event.motion);
+                    SDL_PeepEvents(&event, 9, SDL_GETEVENT, SDL_MOUSEMOTION);
+                    mInput->HandleMouseMotion(event.motion);
                     break;
+                case SDL_MOUSEBUTTONDOWN:
+                case SDL_MOUSEBUTTONUP:
+                    mInput->HandleMouseButton(event.button);
                 case SDL_QUIT:
                     done = true;
                     break;
@@ -76,7 +86,7 @@ void Engine::Run() {
 
             keys = SDL_GetKeyState(NULL);
             if (keys[SDLK_ESCAPE]) {
-                done = true;
+                break;
             }
         }
         lastFrame = currentFrame;
@@ -87,23 +97,27 @@ void Engine::Run() {
 }
 
 void Engine::CreateManagers() {
-    // TODO: Create Managers;
+    mGraphics = shared_ptr<GraphicsManager>(new GraphicsManager());
+    mInput = shared_ptr<InputManager>(new InputManager());
+    mResource = shared_ptr<ResourceManager>(new ResourceManager());
+    mAI = shared_ptr<AIManager>(new AIManager());
 
-    // mGraphics = unique_ptr<GraphicsManager>(new GraphicsManager());
-    // mInput = unique_ptr<InputManager>(new InputManager());
-    // mResource = unique_ptr<ResourceManager>(new ResourceManager());
-    // mAI = unique_ptr<AIManager>(new AIManager());
-    // mSound = unique_ptr<SoundManager>(new SoundManager());
-    // mPhysics = unique_ptr<PhysicsManager>(new PhysicsManager());
+    mGraphics->LinkInputManager(mInput);
+    mGraphics->LinkResourceManager(mResource);
+    
+    // mSound = shared_ptr<SoundManager>(new SoundManager());
+    // mPhysics = shared_ptr<PhysicsManager>(new PhysicsManager());
 }
 
 void Engine::CreateObjects() {
-    // TODO: Create Managers;
 
-    // mGraphics = unique_ptr<GraphicsManager>(new GraphicsManager());
-    // mInput = unique_ptr<InputManager>(new InputManager());
-    // mResource = unique_ptr<ResourceManager>(new ResourceManager());
-    // mAI = unique_ptr<AIManager>(new AIManager());
-    // mSound = unique_ptr<SoundManager>(new SoundManager());
-    // mPhysics = unique_ptr<PhysicsManager>(new PhysicsManager());
+    CreateSkybox();
+}
+
+void Engine::CreateSkybox() {
+    Entity* skybox = new Entity();
+    mEntities["skybox"] = shared_ptr<Entity>(skybox);
+    mGraphics->GenerateDrawComp(mEntities.at("skybox"));
+
+        // TODO: SKYBOX
 }

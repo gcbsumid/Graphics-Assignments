@@ -1,0 +1,4 @@
+set -e; cc -M -g -Wall -MMD -std=c++0x   InputManager.cpp \
+        | sed 's/\(InputManager\)\.o[ :]*/\1.o InputManager.d : /g' > InputManager.d; \
+        [ -s InputManager.d ] || rm -f InputManager.d
+g++ -o InputManager.o -c -g -Wall -MMD -std=c++0x   InputManager.cpp

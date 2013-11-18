@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "Entity.hpp"
 #include "Component.hpp"
 
 class AIManager {
@@ -11,7 +12,7 @@ public:
     AIManager();
     virtual ~AIManager();
 
-    void GenerateAIComp(Entity*);
+    void GenerateAIComp(std::shared_ptr<Entity>);
 
     void UpdateAll();
     void Action(double);

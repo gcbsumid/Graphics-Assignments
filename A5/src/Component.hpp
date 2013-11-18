@@ -3,13 +3,13 @@
 
 #include <GL/glew.h>
 #include <string>
-
-#include "Entity.hpp"
+#include <memory>
 
 class Entity;
 
-// #include "Program.h"
-// TODO: Program and Shader
+#include "Program.hpp"
+#include "Mesh.hpp"
+// TODO: AI Component
 // TODO: Particle Component
 // TODO: Physics Component
 
@@ -27,27 +27,31 @@ public:
         COMPTYPE_MAX
     } ;
         
-    Component(Entity*, CompType);
+    Component(std::shared_ptr<Entity>, CompType);
     ~Component();
 
     virtual void Update();
 
-    // virtual bool Render(Program*);
+    CompType GetType() const;
+    int GetID() const;
 
-private:
-    const int mID;
-    const CompType mType;
+    virtual bool Render(Program*);
+    std::weak_ptr<Entity> GetParent();
+
+protected:
     std::weak_ptr<Entity> mParent;
+    const CompType mType;
+    const int mID;
 };
 
 /******************************** CameraComp ************************************/
 class CameraComp : public Component {
 public:
-    CameraComp();
+    CameraComp(std::shared_ptr<Entity> parent, float fov = 50.0f, float near = 0.5f, float far = 100.0f, float aspect = 4.0f/3.0f);
     virtual ~CameraComp();
 
     virtual void Update();
-    // virtual bool Render(Program*);
+    virtual bool Render(Program*);
 
     // Determines how wide the view of the camera is
     float FieldOfView() const;
@@ -57,9 +61,6 @@ public:
     float NearPlane() const;
     float FarPlane() const;
     void SetNearAndFarPlanes(const float nearPlane, const float farPlane);
-
-    // move Camera function
-    void MoveCamera(float elapsedTime, glm::vec3 direction);
 
     // returns the unit vector representing the direction the camera
     // is facing, to the right of the camera, and top of the camera
@@ -75,35 +76,34 @@ private:
     float mNearPlane;
     float mFarPlane;
     float mViewportAspectRatio;
+    glm::mat4 mCameraMatrix;
 };
 
 /******************************** DrawComp ************************************/
 class DrawComp : public Component {
 public:
-    DrawComp();
+    DrawComp(std::shared_ptr<Entity>);
     virtual ~DrawComp();
 
-    virtual void Update();
-    virtual void Render(Program*);
+    virtual bool Render(Program*);
 
-    // void SetShader(Program* program);
-    // void SetMesh(std::shared_ptr<Mesh> mesh);
+    void SetShader(Program* program);
+    void SetMesh(std::shared_ptr<Mesh> mesh);
     std::string GetMaterialName() const;
-    // Program* GetShader() const;
+    Program* GetShader() const;
 
 private:
-    // std::weak_ptr<Mesh> mMesh;
-    // Program* mShader;
+    std::weak_ptr<Mesh> mMesh;
+    Program* mShader;
 };
 
 /******************************** AIComp ************************************/
 class AIComp : public Component {
 public:
-    AIComp();
+    AIComp(std::shared_ptr<Entity>);
     virtual ~AIComp();
 
     virtual void Update();
-    virtual void Render(Program*);
 
     void Action(double);
     // void GenerateAlgorithm(ALGORITHM);
@@ -117,17 +117,17 @@ private:
 /******************************** LightComp ************************************/
 class LightComp : public Component {
 public:
-    LightComp();
+    LightComp(std::shared_ptr<Entity>, glm::vec3, glm::vec3, float, float);
     virtual ~LightComp();
 
     virtual void Update();
-    virtual void Render(Program*);
+    virtual bool Render(Program*);
 
-    void SetPosition(glm::vec3);
-    glm::vec3 GetPosition() const;
+    void SetIntensities(glm::vec3);
+    glm::vec3 GetIntensities() const;
 
-    void SetIntensity(glm::vec3);
-    glm::vec3 GetIntensity() const;
+    void SetColor(glm::vec3);
+    glm::vec3 GetColor() const;
 
     void SetAttenuation(GLfloat);
     GLfloat GetAttenuation() const;
@@ -136,19 +136,17 @@ public:
     GLfloat GetAmbientCoefficient() const;
 
 private:
+    // Note: Specular and Diffuse Colour is in the material
+    glm::vec3 mIntensities;
     glm::vec3 mColor;
-    glm::vec4 mDiffuse;
     GLfloat mAttenuation;
-    GLfloat mAmbient;
-    glm::vec3 mPosition;
-
-
+    GLfloat mAmbientCoefficient;
 };
 
 // /******************************** ParticleComp ************************************/
 // class ParticleComp : public Component {
 // public:
-//     ParticleComp();
+//     ParticleComp(shared_ptr<Entity>);
 //     virtual ~ParticleComp();
 
 //     virtual void Update();
@@ -161,7 +159,7 @@ private:
 // /******************************** PhysicsComp ************************************/
 // class PhysicsComp : public Component {
 // public:
-//     PhysicsComp();
+//     PhysicsComp(shared_ptr<Entity>);
 //     virtual ~PhysicsComp();
 
 //     virtual void Update();

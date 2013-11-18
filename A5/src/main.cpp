@@ -17,11 +17,17 @@ int main(int argc, char* argv[]) {
     try {
         engine = unique_ptr<Engine> (new Engine());
     } catch (exception& err) {
-        cerr << "Error: " << err.what() << endl;
+        cerr << "Setup Error: " << err.what() << endl;
+        return EXIT_FAILURE;
     }
 
-    if (engine) {
-        engine->Run();
+    try {
+        if (engine) {
+            engine->Run();
+        }
+    } catch (exception& err) {
+        cerr << "Runtime Error: " << err.what() << endl;
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;

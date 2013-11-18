@@ -17,6 +17,7 @@ void clamp(double& val, double min, double max) {
   }
 }
 
+
 Colour generate_shadow_ray(Ray ray, SceneNode* root, const std::list<Light*>& lights, IntersectObj* obj,
   double refl) {
   Colour computed_colour(0.0);

@@ -1,9 +1,9 @@
 SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 DEPENDS = $(SOURCES:.cpp=.d)
-LDFLAGS = -lGL -lGLU -lGLEW -lassimp -lSDL -lSDL_mixer 
+LDFLAGS = -lGL -lGLU -lGLEW -lassimp -lSDL -lSDL_mixer -Istb_image 
 # CXXFLAGS = -g -W -Wall -MMD -std=c++0x -fcolor-diagnostics -ferror-limit=5
-CXXFLAGS = -g -W -Wall -MMD -std=c++0x 
+CXXFLAGS = -g -Wall -MMD -std=c++0x 
 CXXFLAGS += $(DEBUGFLAGS)
 CXX = g++
 # CXX = clang++
