@@ -4,11 +4,13 @@
 #include <GL/glew.h>
 #include <string>
 #include <memory>
-
-class Entity;
-
 #include "Program.hpp"
 #include "Mesh.hpp"
+#include "Technique.hpp"
+
+class Entity;
+class Camera;
+
 // TODO: AI Component
 // TODO: Particle Component
 // TODO: Physics Component
@@ -18,7 +20,6 @@ class Component {
 public:
     enum CompType {  
         COMPTYPE_DRAW = 0,
-        COMPTYPE_CAMERA,
         COMPTYPE_LIGHT,
         COMPTYPE_AI,
         // COMPTYPE_PHYSICS,
@@ -28,14 +29,14 @@ public:
     } ;
         
     Component(std::shared_ptr<Entity>, CompType);
-    ~Component();
+    virtual ~Component();
 
     virtual void Update();
 
     CompType GetType() const;
     int GetID() const;
 
-    virtual bool Render(Program*);
+    // virtual bool Render(Program*);
     std::weak_ptr<Entity> GetParent();
 
 protected:
@@ -44,57 +45,23 @@ protected:
     const int mID;
 };
 
-/******************************** CameraComp ************************************/
-class CameraComp : public Component {
-public:
-    CameraComp(std::shared_ptr<Entity> parent, float fov = 50.0f, float near = 0.5f, float far = 100.0f, float aspect = 4.0f/3.0f);
-    virtual ~CameraComp();
-
-    virtual void Update();
-    virtual bool Render(Program*);
-
-    // Determines how wide the view of the camera is
-    float FieldOfView() const;
-    void SetFieldOfView(const float fieldOfView);
-
-    // The closest and farthest visible distance from the camera
-    float NearPlane() const;
-    float FarPlane() const;
-    void SetNearAndFarPlanes(const float nearPlane, const float farPlane);
-
-    // returns the unit vector representing the direction the camera
-    // is facing, to the right of the camera, and top of the camera
-    glm::vec3 Forward() const;
-    glm::vec3 Right() const;
-    glm::vec3 Up() const;
-
-    // the combined camera transformation matrix
-    glm::mat4 Matrix();
-
-private:
-    float mFieldOfView;
-    float mNearPlane;
-    float mFarPlane;
-    float mViewportAspectRatio;
-    glm::mat4 mCameraMatrix;
-};
-
 /******************************** DrawComp ************************************/
 class DrawComp : public Component {
 public:
     DrawComp(std::shared_ptr<Entity>);
     virtual ~DrawComp();
 
-    virtual bool Render(Program*);
+    virtual bool Render(std::shared_ptr<Camera> camera);
 
-    void SetShader(Program* program);
+    void SetTechnique(Technique* tech);
     void SetMesh(std::shared_ptr<Mesh> mesh);
-    std::string GetMaterialName() const;
-    Program* GetShader() const;
+    void SetTexture(std::shared_ptr<Texture> texture);
 
-private:
-    std::weak_ptr<Mesh> mMesh;
-    Program* mShader;
+    Technique* GetTechnique() const;
+
+protected:
+    std::shared_ptr<Mesh> mMesh;
+    Technique* mTechnique;
 };
 
 /******************************** AIComp ************************************/
@@ -115,33 +82,35 @@ private:
 };
 
 /******************************** LightComp ************************************/
-class LightComp : public Component {
-public:
-    LightComp(std::shared_ptr<Entity>, glm::vec3, glm::vec3, float, float);
-    virtual ~LightComp();
 
-    virtual void Update();
-    virtual bool Render(Program*);
+// TODO: move this all into a lighting technique
+// class LightComp : public Component {
+// public:
+//     LightComp(std::shared_ptr<Entity>, glm::vec3, glm::vec3, float, float);
+//     virtual ~LightComp();
 
-    void SetIntensities(glm::vec3);
-    glm::vec3 GetIntensities() const;
+//     virtual void Update();
+//     virtual bool Render(Program*);
 
-    void SetColor(glm::vec3);
-    glm::vec3 GetColor() const;
+//     void SetIntensities(glm::vec3);
+//     glm::vec3 GetIntensities() const;
 
-    void SetAttenuation(GLfloat);
-    GLfloat GetAttenuation() const;
+//     void SetColor(glm::vec3);
+//     glm::vec3 GetColor() const;
 
-    void SetAmbientCoefficient(GLfloat);
-    GLfloat GetAmbientCoefficient() const;
+//     void SetAttenuation(GLfloat);
+//     GLfloat GetAttenuation() const;
 
-private:
-    // Note: Specular and Diffuse Colour is in the material
-    glm::vec3 mIntensities;
-    glm::vec3 mColor;
-    GLfloat mAttenuation;
-    GLfloat mAmbientCoefficient;
-};
+//     void SetAmbientCoefficient(GLfloat);
+//     GLfloat GetAmbientCoefficient() const;
+
+// private:
+//     // Note: Specular and Diffuse Colour is in the material
+//     glm::vec3 mIntensities;
+//     glm::vec3 mColor;
+//     GLfloat mAttenuation;
+//     GLfloat mAmbientCoefficient;
+// };
 
 // /******************************** ParticleComp ************************************/
 // class ParticleComp : public Component {

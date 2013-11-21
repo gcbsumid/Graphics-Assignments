@@ -1,47 +1,22 @@
-#ifndef TEXTURE_H
-#define TEXTURE_H
+#ifndef TEXTURE_HPP
+#define TEXTURE_HPP
 
-// GL Library
 #include <GL/glew.h>
 
-// Standard Library
 #include <string>
-
-#include "Bitmap.hpp"
+#include <memory>
+#include <Magick++.h>
 #include "Program.hpp"
-
-// Represents an OpenGL texture
 
 class Texture {
 public:
-    // Creates a texture from a bitmap
+    Texture(GLenum target, const std::string& filename);
+    virtual ~Texture();
 
-    // The texture is loaded upside down because Bitmap pixel
-    // data is ordered from the top row down, but OpenGl expects 
-    // the data to be from the bottom row up.
-    Texture(const Bitmap& bitmap, const std::string name, GLint minMagFiler = GL_LINEAR,
-        GLint wrapMode = GL_CLAMP_TO_EDGE);
+    virtual bool Load();
 
-
-    // Deletes the texture object with glDeleteTextures
-    ~Texture();
-
-    // returns the texture object
-    GLuint Object() const;
-
-    // The original width in pixels of the bitmap this texture 
-    // was made from
-    GLfloat OriginalWidth() const;
-
-    // The original height in pixels of the bitmap this texture
-    // was made from
-    GLfloat OriginalHeight() const;
-
-    // The name of the current texture
-    std::string GetName() const;
-
-    void UnbindTexture();
-    void BindTexture(Program*);
+    virtual void Bind(std::shared_ptr<Program> shader);
+    virtual void Unbind();
 
     void SetDiffuse(glm::vec4 diffuse);
     void SetAmbient(glm::vec4 ambient);
@@ -55,21 +30,16 @@ public:
     // glm::vec4 GetEmission() const; 
     GLfloat GetShininess() const;
 
-private:
-    std::string mName;
-    GLuint mObject;
-    GLfloat mOriginalWidth;
-    GLfloat mOriginalHeight;
+protected:
+    std::string mFilename;
+    GLenum mTextureTarget;
+    GLuint mTextureObj;
 
     glm::vec4 mDiffuse;
     glm::vec4 mAmbient;
     glm::vec4 mSpecular;
     // glm::vec4 mEmission; // No idea what this is yet.
     GLfloat mShininess;
-
-    // copying disabled 
-    Texture(const Texture&);
-    const Texture& operator=(const Texture&);
 };
 
 #endif

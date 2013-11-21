@@ -88,6 +88,8 @@ Shader Shader::ShaderFromFile(const std::string& filePath, GLenum shaderType) {
     std::stringstream code;
     code << f.rdbuf();
 
+    std::cout << code.str() << std::endl;
+
     // Return new shader
     Shader shader(code.str(), shaderType, filePath);
     return shader;

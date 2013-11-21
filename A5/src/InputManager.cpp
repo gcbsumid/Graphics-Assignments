@@ -6,6 +6,7 @@
 
 #include "InputManager.hpp"
 #include "Entity.hpp"
+#include <SDL2/SDL.h>
 
 using namespace std;
 
@@ -14,7 +15,8 @@ using namespace std;
 InputManager::InputManager() 
     : mPrev(0,0)
     , mCur(0,0) 
-    , mUpAngle(0.0f) {
+    , mUpAngle(0.0f)
+    , mLightStatus(false) {
 
 }
 
@@ -22,50 +24,56 @@ InputManager::~InputManager() {
 
 }
 
-void InputManager::AttachCameraComponent(shared_ptr<CameraComp> comp) {
+void InputManager::AttachCamera(shared_ptr<Camera> comp) {
     assert(comp.use_count());
-    mCameraComp = comp;
+    mCamera = comp;
 }
 
 void InputManager::HandleKeyPress(SDL_KeyboardEvent key) {
-    auto camera = mCameraComp.lock();
-    auto player = camera->GetParent().lock();
+    auto camera = mCamera.lock();
+    // TODO fix this shit. 
+    std::cout << "I'm in handle key press! " << key.keysym.sym << std::endl;
     switch(key.keysym.sym) {
         case SDLK_w:
             if(key.state == SDL_PRESSED) {
+                std::cout << "Pressing W! " << std::endl;
                 glm::vec3 fwd = camera->Forward() * 0.2f;
-                player->Translate(fwd);
+                camera->Translate(fwd);
                 // handle movign forward.
             } 
             break;
         case SDLK_s:
             if(key.state == SDL_PRESSED) {
+                std::cout << "Pressing S! " << std::endl;
                 glm::vec3 bck = camera->Forward() * -0.2f;
-                player->Translate(bck);
+                camera->Translate(bck);
                 // handle movign backward.
             } 
             break;
         case SDLK_a:
             if(key.state == SDL_PRESSED) {
+                std::cout << "Pressing A! " << std::endl;
                 glm::vec3 left = camera->Right() * -0.2f;
-                player->Translate(left);
+                camera->Translate(left);
                 // handle movign strafe left.
             } 
             break;
         case SDLK_d:
             if(key.state == SDL_PRESSED) {
+                std::cout << "Pressing D! " << std::endl;
                 glm::vec3 right = camera->Right() * 0.2f;
-                player->Translate(right);
+                camera->Translate(right);
                 // handle movign strafe right.
             } 
             break;
         case SDLK_l:
             if(key.state == SDL_PRESSED) {
-                // TODO: turning all the lights on and off.
+                mLightStatus = !mLightStatus;
             } 
             break;
         // TODO: deal with 12345 for different modes
         default:
+            cout << "Default. " << endl;
             break;
     }
 }
@@ -77,14 +85,13 @@ void InputManager::HandleMouseMotion(SDL_MouseMotionEvent motion) {
     mUpAngle += mCur[1];
     // mRightAngle += mCur[0];
 
-    auto camera = mCameraComp.lock();
-    auto player = camera->GetParent().lock();
+    auto camera = mCamera.lock();
     if (mUpAngle < 75.0f && mUpAngle > -75.0f) {
-        player->Rotate(glm::vec3(1,0,0), mCur[1]);
+        camera->Rotate(glm::vec3(1,0,0), mCur[1]);
     }
 
     // if (mRightAngle )
-    player->Rotate(glm::vec3(0,1,0), mCur[0]);
+    camera->Rotate(glm::vec3(0,1,0), mCur[0]);
 
     mPrev[0] = motion.x;
     mPrev[1] = motion.y;
@@ -96,4 +103,8 @@ void InputManager::HandleMouseButton(SDL_MouseButtonEvent button) {
         // TODO: pick up object ~ Probably do some raycast to intersect object
         std::cout << "Left Click!" << std::endl;
     } 
+}
+
+bool InputManager::GetLightStatus() {
+    return mLightStatus;
 }

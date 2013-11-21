@@ -1,9 +1,10 @@
 SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 DEPENDS = $(SOURCES:.cpp=.d)
-LDFLAGS = -lGL -lGLU -lGLEW -lassimp -lSDL -lSDL_mixer -Istb_image 
+LDFLAGS = -lGL -lGLU -lGLEW -lassimp -lSDL2 -lSDL2_mixer -Istb_image -lMagick++
+MAGICK = `Magick++-config --cppflags --cxxflags --ldflags --libs`
 # CXXFLAGS = -g -W -Wall -MMD -std=c++0x -fcolor-diagnostics -ferror-limit=5
-CXXFLAGS = -g -Wall -MMD -std=c++0x 
+CXXFLAGS = -g -Wall -MMD -std=c++0x
 CXXFLAGS += $(DEBUGFLAGS)
 CXX = g++
 # CXX = clang++
@@ -21,10 +22,10 @@ $(MAIN): $(OBJECTS)
 	$(CXX) -o $@ $(OBJECTS) $(LDFLAGS) 
 
 %.o: %.cpp
-	$(CXX) -o $@ -c $(CXXFLAGS) $<
+	$(CXX) $(MAGICK) -o $@ -c $(CXXFLAGS)$<
 
 %.d: %.cpp
-	 set -e; $(CC) -M $(CXXFLAGS) $< \
+	 set -e; $(CC) -M $(MAGICK) $(CXXFLAGS) $< \
         | sed 's/\($*\)\.o[ :]*/\1.o $@ : /g' > $@; \
         [ -s $@ ] || rm -f $@
 

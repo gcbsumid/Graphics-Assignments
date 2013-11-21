@@ -1,4 +1,359 @@
-OpenGL version: 3.3.0 NVIDIA 304.88
-GLSL version: 3.30 NVIDIA via Cg compiler
-Vendor: NVIDIA Corporation
-Renderer: GeForce GTS 350M/PCIe/SSE2
+Ready for OpenGL 3.3
+File: ./skybox.vert
+#version 330
+
+layout (location = 0) in vec3 position;
+
+uniform mat4 view_matrix;
+uniform mat4 model_matrix;
+
+out vec3 TexCoord0;
+
+void main() {
+    vec4 wvp_pos = view_matrix * model_matrix * vec4(position, 1.0);
+    gl_Position = wvp_pos.xyww;
+    TexCoord0 = position;
+}
+File: ./skybox.frag
+#version 330
+
+in vec3 TexCoord0;
+
+out vec4 finalColor;
+
+// uniform samplerCube cubemap_texture;
+
+void main() {
+    // finalColor = texture(cubemap_texture, TexCoord0);
+    finalColor = vec4(1, 0, 0.4, 1);
+}
+I'm being enabled!
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+Index buffer: 2
+Vertex buffer: 1
+Num of Indicies: 2880
+I'm in handle key press! 2
+Default. 

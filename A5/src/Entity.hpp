@@ -32,7 +32,7 @@ public:
     // For Debug only
     void DisplayTransform();
 
-private:
+protected:
     std::map<Component::CompType, std::shared_ptr<Component>> mComponents;
     int mID;
 

@@ -12,6 +12,7 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
+    Magick::InitializeMagick(*argv);
     unique_ptr<Engine> engine(nullptr);
 
     try {
