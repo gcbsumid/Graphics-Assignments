@@ -57,8 +57,8 @@ bool DrawComp::Render(std::shared_ptr<Camera> camera) {
 
     auto parent = mParent.lock();
 
-    mTechnique->SetViewMatrix(camera->GetViewMatrix());
-    mTechnique->SetModelMatrix(parent->GetTransform());
+    // mTechnique->SetViewMatrix(camera->GetViewMatrix());
+    // mTechnique->SetModelMatrix(parent->GetTransform());
 
     mMesh->Render(mTechnique->GetProgram());
 

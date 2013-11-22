@@ -2,13 +2,15 @@
 #include <iostream>
 #include <string>
 #include <cassert>
+#include <GL/glew.h>
+#include <GL/glfw.h>
 
 #include "GraphicsManager.hpp"
 
 using namespace std;
 
-GraphicsManager::GraphicsManager(SDL_Window* window) 
-    : mWindow(window)
+GraphicsManager::GraphicsManager(/*SDL_Window* window*/) 
+    // : mWindow(window)
 {
 
 }
@@ -42,7 +44,7 @@ GraphicsManager::~GraphicsManager() {
 bool GraphicsManager::Render() {
     // assert(mActiveShader != NULL);
 
-    glClearColor(1,1,1,1);
+    glClearColor(0,0,0,1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // TODO: Redo a lot of this
@@ -95,7 +97,8 @@ bool GraphicsManager::Render() {
     auto skybox = mSkybox.lock();
     skybox->Render();
 
-    SDL_GL_SwapWindow(mWindow);
+    glfwSwapBuffers();
+    // SDL_GL_SwapWindow(mWindow);
     return true;
 }
 

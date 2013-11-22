@@ -1,4 +1,5 @@
 #include "Technique.hpp"
+#include <stdexcept>
 #include <iostream>
 
 using namespace std;
@@ -9,17 +10,7 @@ Technique::Technique()
 Technique::~Technique() {}
 
 bool Technique::Init() {
-    mViewMatrixLocation = mProgram->Uniform("view_matrix");
-    mModelMatrixLocation = mProgram->Uniform("model_matrix");
     return true;
-}
-
-void Technique::SetViewMatrix(const glm::mat4& viewMat) {
-    mProgram->SetUniform("view_matrix", viewMat, GL_TRUE);
-}
-
-void Technique::SetModelMatrix(const glm::mat4& modelMat) {
-    mProgram->SetUniform("model_matrix", modelMat, GL_TRUE);
 }
 
 bool Technique::AddShader(const std::string& filepath, GLenum shaderType) {
@@ -29,7 +20,12 @@ bool Technique::AddShader(const std::string& filepath, GLenum shaderType) {
 }
 
 bool Technique::CompileShaders() {
-    mProgram = shared_ptr<Program> (new Program(mShaders));
+    try {
+        mProgram = shared_ptr<Program> (new Program(mShaders));
+    } catch (exception& err) {
+        cerr << "Runtime Error: " << err.what() << endl;
+        return false;
+    }
     // mShaders.clear();
     return true;
 }

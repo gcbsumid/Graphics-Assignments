@@ -1,12 +1,14 @@
-#version 330
+#version 330 core
 
-in vec3 TexCoord0;
+// in vec3 fragNormal;
+in vec3 fragTexCoord; // This is the texture coordinates
+// in vec3 fragVert; 
 
 out vec4 finalColor;
 
-// uniform samplerCube cubemap_texture;
+uniform samplerCube cubemap_texture;
 
 void main() {
-    // finalColor = texture(cubemap_texture, TexCoord0);
-    finalColor = vec4(1, 0, 0.4, 1);
+    finalColor = texture(cubemap_texture, fragTexCoord);
+    // finalColor = vec4(0.4f, 0.4f, 0.4f, 1.0f);
 }

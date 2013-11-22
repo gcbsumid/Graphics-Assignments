@@ -4,7 +4,7 @@
 // Standard Library
 #include <memory>
 #include <map>
-#include <SDL2/SDL.h>
+// #include <SDL2/SDL.h>
 
 
 // Own Code
@@ -61,8 +61,8 @@ private:
     std::shared_ptr<Camera> mCamera;
     std::shared_ptr<Skybox> mSkybox;
 
-    SDL_Window* mMainWindow;
-    SDL_GLContext mMainContext;
+    // SDL_Window* mMainWindow;
+    // SDL_GLContext mMainContext;
 
     // Don't implement copy constructor
     Engine(const Engine&);

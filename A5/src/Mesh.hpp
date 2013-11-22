@@ -59,6 +59,7 @@ private:
 
         GLuint mVertexBuffer;
         GLuint mIndexBuffer;
+        GLuint mVertexArray;
         unsigned int mNumIndices;
         unsigned int mMaterialIndex;
     };

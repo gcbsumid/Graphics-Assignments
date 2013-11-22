@@ -27,11 +27,18 @@ CubemapTexture::CubemapTexture(const std::string& PosXFilename,
     mFilenames[5] = NegZFilename;
 }
 
-CubemapTexture::~CubemapTexture() {}
+CubemapTexture::~CubemapTexture() {
+    if (mTextureObj != 0) {
+        glDeleteTextures(1, &mTextureObj);
+    }
+}
 
 bool CubemapTexture::Load() {
+    cout << "Cubemap Loading." << endl;
+    
     glGenTextures(1, &mTextureObj);
     glBindTexture(mTextureTarget, mTextureObj);
+    // glTexStorage2D(GL_TEXTURE_CUBE_MAP, 10, GL_RGBA8, 1024, 1024);
 
     Magick::Image* image = NULL;
     Magick::Blob blob;
@@ -48,6 +55,13 @@ bool CubemapTexture::Load() {
             return false;
         }
 
+        // glTexSubImage2D(types[i],
+                        // 0,
+                        // 0, 0,
+                        // image->columns(), image->rows(),
+                        // GL_RGBA,
+                        // GL_UNSIGNED_BYTE,
+                        // blob.data());
         glTexImage2D(types[i], 0, GL_RGB, image->columns(), image->rows(), 0, GL_RGBA,
             GL_UNSIGNED_BYTE, blob.data());
         // std::cout << "length: " << blob.length() << std::endl;
@@ -65,6 +79,7 @@ bool CubemapTexture::Load() {
 }
 
 void CubemapTexture::Bind(shared_ptr<Program> shader) {
+    // cout << "Cubemap Bind." << endl;
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(mTextureTarget, mTextureObj);
 }

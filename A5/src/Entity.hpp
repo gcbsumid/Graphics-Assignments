@@ -17,7 +17,7 @@ public:
     std::shared_ptr<Component> GetComponent(Component::CompType) const;
 
     int GetID() const;
-    glm::mat4 GetTransform() const;
+    glm::mat4 GetTransform();
 
     virtual void Scale(glm::vec3 scale);
     virtual void Translate(glm::vec3 pos);

@@ -17,9 +17,6 @@ public:
     void Enable();
     void Disable();
 
-    virtual void SetViewMatrix(const glm::mat4& viewMat);
-    virtual void SetModelMatrix(const glm::mat4& modelMat);
-
     std::shared_ptr<Program> GetProgram();
 
 protected:
@@ -31,8 +28,6 @@ protected:
 
 private:
 
-    GLuint mViewMatrixLocation;
-    GLuint mModelMatrixLocation;
     std::vector<Shader> mShaders;
 
 };

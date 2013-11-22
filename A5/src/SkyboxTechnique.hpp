@@ -10,9 +10,10 @@ public:
     virtual bool Init();
 
     void SetTextureUnit(unsigned int TextureUnit);
+    void SetWVP(const glm::mat4& wvp);
 
 private:
-    // GLuint mWVPLocation;
+    GLuint mWVPLocation;
     GLuint mTextureLocation;  
 };
 

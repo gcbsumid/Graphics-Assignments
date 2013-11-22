@@ -13,9 +13,15 @@ public:
 
     void AttachCamera(std::shared_ptr<Camera>);
 
-    void HandleKeyPress(SDL_KeyboardEvent key);
-    void HandleMouseMotion(SDL_MouseMotionEvent motion);
-    void HandleMouseButton(SDL_MouseButtonEvent button);
+    void HandleKeyPress(double elapsedTime);
+    void HandleMouseMotion(double elapsedTime);
+    void HandleMouseButton(double elapsedTime);
+
+
+
+    // void HandleKeyPress(SDL_KeyboardEvent key);
+    // void HandleMouseMotion(SDL_MouseMotionEvent motion);
+    // void HandleMouseButton(SDL_MouseButtonEvent button);
 
     bool GetLightStatus();
 
@@ -23,7 +29,7 @@ private:
     std::weak_ptr<Camera> mCamera;
 
     glm::vec2 mPrev, mCur;
-    float mUpAngle; //, mRightAngle;
+    float mUpAngle, mRightAngle;
     bool mLightStatus;
 };
 

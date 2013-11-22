@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include <SDL2/SDL.h>
+// #include <SDL2/SDL.h>
 
 #include "Entity.hpp"
 #include "Component.hpp"
@@ -20,7 +20,8 @@
 
 class GraphicsManager {
 public:
-    GraphicsManager(SDL_Window* window);
+    GraphicsManager();
+    // GraphicsManager(SDL_Window* window);
     virtual ~GraphicsManager();
 
     // int LoadShaders(std::string vert_shader, std::string frag_shader);
@@ -54,7 +55,7 @@ private:
     // std::shared_ptr<std::map<std::string, Texture*>> mTextures;
     // std::shared_ptr<std::map<int, std::shared_ptr<Mesh>>> mMeshes;
     
-    SDL_Window* mWindow;
+    // SDL_Window* mWindow;
     // std::vector<Program*> mShaders;
 
 

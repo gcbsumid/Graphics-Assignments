@@ -20,11 +20,13 @@ Program::Program(const std::vector<Shader> &shaders)
 
     // attach all the shaders
     for (unsigned int i = 0; i < shaders.size(); i++) {
-            glAttachShader(mObject, shaders.at(i).object());
+        glAttachShader(mObject, shaders.at(i).object());
     }
 
     // link the shaders together
     glLinkProgram(mObject);
+
+
 
     // detach all the shaders
     for (unsigned int i = 0; i < shaders.size(); i++) {
@@ -49,6 +51,19 @@ Program::Program(const std::vector<Shader> &shaders)
         mObject = 0;
         throw std::runtime_error(msg.str().c_str());
     } 
+
+    glValidateProgram(mObject);
+    glGetProgramiv(mObject, GL_VALIDATE_STATUS, &status);
+    if (!status) {
+        GLchar ErrorLog[1024] = { 0 };
+        glGetProgramInfoLog(mObject, sizeof(ErrorLog), NULL, ErrorLog);
+        std::stringstream msg;
+        msg << "Program link failure: ";
+        msg << ErrorLog << std::endl;
+        glDeleteProgram(mObject);
+        mObject = 0;
+        throw std::runtime_error(msg.str().c_str());
+    }
 }
 
 int Program::GetID() const {

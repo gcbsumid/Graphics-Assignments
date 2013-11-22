@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include "Camera.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -16,14 +17,14 @@ Camera::Camera(float fov,
     , mViewportAspectRatio(aspect)
     , mNeedUpdate(false)
 {
-    UpdateViewMatrix();
+    UpdatePerspMatrix();
 }
 
-glm::mat4 Camera::GetViewMatrix() {
-    if (mNeedUpdate) {
-        UpdateViewMatrix();
-        mNeedUpdate = false;
-    }
+glm::mat4 Camera::GetPerspMatrix() {
+    // if (mNeedUpdate) {
+    //     UpdatePerspMatrix();
+    //     mNeedUpdate = false;
+    // }
 
     // cout << "Model Transform of Entity: " << mID << endl;
     // cout << "\t  { " << mViewMatrix[0][0] << " ,\t" << mViewMatrix[0][1] << " ,\t" << mViewMatrix[0][2] << " ,\t" <<mViewMatrix[0][3] << "}" << endl;
@@ -31,16 +32,32 @@ glm::mat4 Camera::GetViewMatrix() {
     // cout << "\t  { " << mViewMatrix[2][0] << " ,\t" << mViewMatrix[2][1] << " ,\t" << mViewMatrix[2][2] << " ,\t" <<mViewMatrix[2][3] << "}" << endl;
     // cout << "\t  { " << mViewMatrix[3][0] << " ,\t" << mViewMatrix[3][1] << " ,\t" << mViewMatrix[3][2] << " ,\t" <<mViewMatrix[3][3] << "}" << endl;
 
-    return mViewMatrix;
+    // return glm::perspective(mFieldOfView, mViewportAspectRatio, mNearPlane, mFarPlane);
+    // return mViewMatrix;
+
+    glm::mat4 m;
+    const float ar         = mViewportAspectRatio;
+    const float zRange     = mNearPlane - mFarPlane;
+    const double tanHalfFOV = 1 / (tan((mFieldOfView / 2.0f) * (M_PI/180.0)));
+
+    m[0][0] = 1.0f/(tanHalfFOV * ar);
+    m[1][1] = 1.0f/tanHalfFOV;
+    m[2][2] = (-mNearPlane - mFarPlane)/zRange ;
+    m[2][3] = 2.0f*mFarPlane*mNearPlane/zRange;
+    m[3][2] = 1.0f;
+    m[3][3] = 0.0;                    
+
+    return m;
+
 }
 
-void Camera::UpdateViewMatrix() {
+void Camera::UpdatePerspMatrix() {
     mViewMatrix = glm::perspective(mFieldOfView, mViewportAspectRatio, mNearPlane, mFarPlane);
-    mViewMatrix = mViewMatrix * mRotate * mTranslate;
+    mViewMatrix = mViewMatrix * mTranslate * mRotate;
 }
 
 glm::vec3 Camera::GetPos() {
-    return glm::vec3(glm::vec4(0,0,0,1) * mTranslate) ;
+    return glm::vec3(mTranslate * glm::vec4(0,0,0,1)) ;
 }
 
 float Camera::FieldOfView() const {
@@ -80,19 +97,19 @@ void Camera::SetNearAndFarPlanes(const float nearPlane, const float farPlane) {
 
 glm::vec3 Camera::Forward() const {
     glm::vec4 forward = glm::inverse(mRotate) * glm::vec4(0,0,-1,1);
-    forward = glm::vec4(forward[0], 0.0, forward[2], forward[3]);
+    // forward = glm::vec4(forward[0], 0.0, forward[2], forward[3]);
     return glm::vec3(forward);
 }
 
 glm::vec3 Camera::Right() const {
     glm::vec4 right = glm::inverse(mRotate) * glm::vec4(1,0,0,1);
-    right = glm::vec4(right[0], 0.0, right[2], right[3]);
+    // right = glm::vec4(right[0], 0.0, right[2], right[3]);
     return glm::vec3(right);
 }
 
 glm::vec3 Camera::Up() const {
     glm::vec4 up = glm::inverse(mRotate) * glm::vec4(0,1,0,1);
-    up = glm::vec4(0.0, up[1], 0.0, up[3]);
+    // up = glm::vec4(0.0, up[1], 0.0, up[3]);
     return glm::vec3(up);
 }
 

@@ -25,6 +25,13 @@ public:
     bool Render();
 
 private:
+    // TEMP
+    // GLuint mVAO;
+    // GLuint mVBO;
+    // GLenum mDrawType;
+    // GLint mDrawStart;
+    // GLint mDrawCount;
+
     const std::weak_ptr<Camera> mCamera;
     std::shared_ptr<SkyboxTechnique> mSkyboxTech;
     std::shared_ptr<Mesh> mSkyboxMesh;

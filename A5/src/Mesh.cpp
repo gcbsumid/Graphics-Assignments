@@ -3,6 +3,7 @@
 
 // Standard Library
 #include <iostream>
+#include <cassert>
 
 // Backlash Library
 #include "Mesh.hpp"
@@ -43,19 +44,18 @@ bool Mesh::MeshEntry::Init(const std::vector<Vertex>& vertices,
     mNumIndices = indices.size();
     // mBoundingBox = box;
 
-    glGenBuffers(1, &mVertexBuffer);
-    // glGenVertexArrays(1, &mVertexArray);
-
-    // glBindVertexArray(mVertexArray);
-
-    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
-
-    // std::cout << "Size of Vector of Vertices: " << sizeof(Vertex) << " * " << vertices.size() << " = " << sizeof(Vertex) * vertices.size() << std::endl;
-
     glGenBuffers(1, &mIndexBuffer) ;
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mNumIndices, &indices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &mVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
+    // glBindVertexArray(mVertexArray);
+        
+    glGenVertexArrays(1, &mVertexArray);
+    glBindVertexArray(mVertexArray);
+    // std::cout << "Size of Vector of Vertices: " << sizeof(Vertex) << " * " << vertices.size() << " = " << sizeof(Vertex) * vertices.size() << std::endl;
     // std::cout << "Size of Vector of Indices: " << sizeof(unsigned int) << " * " << mNumIndices << " = " << sizeof(unsigned int) * mNumIndices << std::endl;
 
     // This is the fix. apparently
@@ -134,9 +134,9 @@ void Mesh::InitMesh(unsigned int index, const aiMesh* mesh) {
         const aiVector3D* normal   = &(mesh->mNormals[i]);
         const aiVector3D* texCoord = mesh->HasTextureCoords(0) ? &(mesh->mTextureCoords[0][i]) : &Zero3D;
 
-        // cout << "Vert: ( " << pos->x << " , " << pos->y << " , " << pos->z << " ) " << endl;
-        // cout << "Normal: ( " << pos->x << " , " << pos->y << " , " << pos->z << " ) " << endl;
-        // cout << "texCoord: ( " << texCoord->x << " , " << texCoord->y << " ) " << endl;
+        cout << "Vert: ( " << pos->x << " , " << pos->y << " , " << pos->z << " ) " << endl;
+        cout << "Normal: ( " << pos->x << " , " << pos->y << " , " << pos->z << " ) " << endl;
+        cout << "texCoord: ( " << texCoord->x << " , " << texCoord->y << " ) " << endl;
 
         Vertex v(glm::vec3(pos->x, pos->y, pos->z),
                  glm::vec2(texCoord->x, texCoord->y),
@@ -209,6 +209,7 @@ bool Mesh::InitMaterials(const aiScene* scene, const string& filename)
 
 void Mesh::Render(std::shared_ptr<Program> shader)
 {
+    assert(shader->IsInUse());
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
@@ -216,16 +217,19 @@ void Mesh::Render(std::shared_ptr<Program> shader)
     // cout << "mEntries = " << mEntries.size() << endl;
 
     for (unsigned int i = 0 ; i < mEntries.size() ; i++) {
+
         glBindBuffer(GL_ARRAY_BUFFER, mEntries[i].mVertexBuffer);
+        glBindVertexArray(mEntries[i].mVertexArray);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEntries[i].mIndexBuffer);
+
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)12);
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)20);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEntries[i].mIndexBuffer);
 
-        cout << "Index buffer: " << mEntries[i].mIndexBuffer << std::endl;
-        cout << "Vertex buffer: " << mEntries[i].mVertexBuffer << std::endl;
-        cout << "Num of Indicies: " << mEntries[i].mNumIndices << std::endl;
+        // cout << "Index buffer: " << mEntries[i].mIndexBuffer << std::endl;
+        // cout << "Vertex buffer: " << mEntries[i].mVertexBuffer << std::endl;
+        // cout << "Num of Indicies: " << mEntries[i].mNumIndices << std::endl;
         const unsigned int materialIndex = mEntries[i].mMaterialIndex;
 
         if (materialIndex < mTextures.size() && mTextures[materialIndex]) {
@@ -233,7 +237,7 @@ void Mesh::Render(std::shared_ptr<Program> shader)
             mTextures[materialIndex]->Bind(shader);
         }
 
-        glDrawElements(GL_TRIANGLES, mEntries[i].mNumIndices, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, mEntries[i].mNumIndices, GL_UNSIGNED_INT, NULL);
     }
 
     glDisableVertexAttribArray(0);

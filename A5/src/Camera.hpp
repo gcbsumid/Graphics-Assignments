@@ -11,15 +11,15 @@
 class Camera : public Entity {
 public:
     Camera(float fov = 60.0f,
-               float near = 0.5f,
+               float near = 1.0f,
                float far = 100.0f,
                float aspect = 1.0f);
 
     // Determines how wide the view of the camera is
 
     // the combined camera transformation matrix
-    glm::mat4 GetViewMatrix();
-    virtual void UpdateViewMatrix();
+    glm::mat4 GetPerspMatrix();
+    virtual void UpdatePerspMatrix();
 
     virtual glm::vec3 GetPos();
 
