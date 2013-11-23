@@ -16,25 +16,12 @@ Camera::Camera(float fov,
     , mFarPlane(far) 
     , mViewportAspectRatio(aspect)
     , mNeedUpdate(false)
+    , mVerticalAngle(0.0f)
+    , mHorizontalAngle(0.0f)
 {
-    UpdatePerspMatrix();
 }
 
 glm::mat4 Camera::GetPerspMatrix() {
-    // if (mNeedUpdate) {
-    //     UpdatePerspMatrix();
-    //     mNeedUpdate = false;
-    // }
-
-    // cout << "Model Transform of Entity: " << mID << endl;
-    // cout << "\t  { " << mViewMatrix[0][0] << " ,\t" << mViewMatrix[0][1] << " ,\t" << mViewMatrix[0][2] << " ,\t" <<mViewMatrix[0][3] << "}" << endl;
-    // cout << "\t  { " << mViewMatrix[1][0] << " ,\t" << mViewMatrix[1][1] << " ,\t" << mViewMatrix[1][2] << " ,\t" <<mViewMatrix[1][3] << "}" << endl;
-    // cout << "\t  { " << mViewMatrix[2][0] << " ,\t" << mViewMatrix[2][1] << " ,\t" << mViewMatrix[2][2] << " ,\t" <<mViewMatrix[2][3] << "}" << endl;
-    // cout << "\t  { " << mViewMatrix[3][0] << " ,\t" << mViewMatrix[3][1] << " ,\t" << mViewMatrix[3][2] << " ,\t" <<mViewMatrix[3][3] << "}" << endl;
-
-    // return glm::perspective(mFieldOfView, mViewportAspectRatio, mNearPlane, mFarPlane);
-    // return mViewMatrix;
-
     glm::mat4 m;
     const float ar         = mViewportAspectRatio;
     const float zRange     = mNearPlane - mFarPlane;
@@ -51,13 +38,32 @@ glm::mat4 Camera::GetPerspMatrix() {
 
 }
 
-void Camera::UpdatePerspMatrix() {
-    mViewMatrix = glm::perspective(mFieldOfView, mViewportAspectRatio, mNearPlane, mFarPlane);
-    mViewMatrix = mViewMatrix * mTranslate * mRotate;
-}
-
 glm::vec3 Camera::GetPos() {
     return glm::vec3(mTranslate * glm::vec4(0,0,0,1)) ;
+}
+
+void Camera::OffsetOrientation(float upAngle, float rightAngle) {
+    mVerticalAngle += upAngle;
+    mHorizontalAngle += rightAngle;
+
+    if (mHorizontalAngle < 0.0f) {
+        mHorizontalAngle += 360.0f;
+    } else if (mHorizontalAngle >= 360.0f) {
+        mHorizontalAngle -= 360.0f;
+    }
+
+    if (mVerticalAngle > 85.0f) {
+        mVerticalAngle = 85.0f;   
+    } else if (mVerticalAngle < -85.0f) {
+        mVerticalAngle = -85.0f;
+    }
+    mRotate = glm::mat4();
+    mRotate = glm::rotate(mRotate, mVerticalAngle, glm::vec3(1,0,0));
+    mRotate = glm::rotate(mRotate, mHorizontalAngle, glm::vec3(0,1,0));
+}
+
+glm::mat4 Camera::GetRotate() {
+    return mRotate;
 }
 
 float Camera::FieldOfView() const {

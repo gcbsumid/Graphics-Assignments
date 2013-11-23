@@ -7,10 +7,38 @@
 // Standard Library
 #include <string>
 #include <vector>
+// #include <list>
 
 #include "Texture.hpp"
 #include <assimp/scene.h>
 // #include "AABB.h"
+
+struct WE_Vertex;
+struct WE_Face;
+struct WE_Edge;
+
+struct WE_Vertex {
+    std::vector<WE_Edge*> mEdges;
+
+    // Object Data
+    std::vector<WE_Face> mFaces;    // Do I need this? According to wikipedia, I don't.
+    glm::vec3 mPosition;
+    glm::vec3 mAvgNormal;
+};
+
+struct WE_Face {
+    std::vector<WE_Edge*> mEdges;
+
+    // Object Data
+};
+
+struct WE_Edge {
+    WE_Vertex *mVert1, *mVert2;
+    WE_Face *mFaceA, *mFaceB;
+    WE_Edge *mPrevA, *mNextA, *mPrevB, *mNextB;
+
+    // Object Data
+};
 
 struct Vertex {
     // float x, y, z;    // (x,y,z)

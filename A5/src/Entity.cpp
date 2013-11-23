@@ -39,7 +39,7 @@ int Entity::GetID() const {
 }
 
 glm::mat4 Entity::GetTransform() {
-    mTransform = mTranslate * mRotate * mScale;
+    mTransform = mScale * mRotate * mTranslate;
     return mTransform;
 }
 
@@ -55,16 +55,19 @@ void Entity::Translate(glm::vec3 pos) {
 
 void Entity::Rotate(char axis, float angle) {
     // angle = (angle/180 * M_PI);
+    glm::mat4 r; 
 
     if (axis == 'x') {
-        mRotate = glm::rotate(mRotate, angle, glm::vec3(1,0,0));
+        r = glm::rotate(r, angle, glm::vec3(1,0,0));
     } else if (axis == 'y') {
-        mRotate = glm::rotate(mRotate, angle, glm::vec3(0,1,0));
+        r = glm::rotate(r, angle, glm::vec3(0,1,0));
     } else if (axis == 'z') {
-        mRotate = glm::rotate(mRotate, angle, glm::vec3(0,0,1));
+        r = glm::rotate(r, angle, glm::vec3(0,0,1));
     } else {
         cerr << "Error: Invalid Axis " << axis << endl;
     }
+
+    mRotate = r * mRotate;
 }
 
 void Entity::Rotate(glm::vec3 axis, float angle) {
@@ -72,7 +75,7 @@ void Entity::Rotate(glm::vec3 axis, float angle) {
 
     r = glm::rotate(r, angle, axis);
 
-    mRotate = r * mRotate ;
+    mRotate = r * mRotate;
 }
 
 void Entity::DisplayTransform() {

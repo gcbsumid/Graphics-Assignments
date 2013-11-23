@@ -14,7 +14,7 @@ bool Technique::Init() {
 }
 
 bool Technique::AddShader(const std::string& filepath, GLenum shaderType) {
-    std::cout << "File: " << filepath << std::endl;
+    // std::cout << "File: " << filepath << std::endl;
     mShaders.push_back(Shader::ShaderFromFile(filepath, shaderType));
     return true;
 }

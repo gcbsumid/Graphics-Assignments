@@ -59,13 +59,13 @@ bool Mesh::MeshEntry::Init(const std::vector<Vertex>& vertices,
     // std::cout << "Size of Vector of Indices: " << sizeof(unsigned int) << " * " << mNumIndices << " = " << sizeof(unsigned int) * mNumIndices << std::endl;
 
     // This is the fix. apparently
-    glEnableVertexAttribArray(0);   // "vert"
-    glEnableVertexAttribArray(1);   // "vertTexCoord"
-    glEnableVertexAttribArray(2);   // "vertNormal"
+    // glEnableVertexAttribArray(0);   // "vert"
+    // glEnableVertexAttribArray(1);   // "vertTexCoord"
+    // glEnableVertexAttribArray(2);   // "vertNormal"
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*) sizeof(glm::vec3));
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*) ( sizeof(glm::vec3) + sizeof(glm::vec2)) );
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+    // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*) sizeof(glm::vec3));
+    // glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*) ( sizeof(glm::vec3) + sizeof(glm::vec2)) );
 
     // glBindVertexArray(0);
     // std::cout << "Initialized Vertex Buffer: " << mVertexBuffer << std::endl;
@@ -95,7 +95,8 @@ bool Mesh::LoadMesh(const string& filename) {
     const aiScene* scene = importer.ReadFile(filename.c_str(), 
         aiProcess_Triangulate |
         aiProcess_GenSmoothNormals |
-        aiProcess_FlipUVs );
+        aiProcess_FlipUVs | 
+        aiProcess_JoinIdenticalVertices );
 
     if (scene) {
         return InitFromScene(scene, filename);
@@ -126,17 +127,17 @@ void Mesh::InitMesh(unsigned int index, const aiMesh* mesh) {
 
     const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 
-    // cout << "Buffer Size: " << mesh->mNumVertices << endl;
-    // cout << "Indices Size: " << mesh->mNumFaces*3 << endl;
+    cout << "Buffer Size: " << mesh->mNumVertices << endl;
+    cout << "Indices Size: " << mesh->mNumFaces*3 << endl;
 
     for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
         const aiVector3D* pos      = &(mesh->mVertices[i]);
         const aiVector3D* normal   = &(mesh->mNormals[i]);
         const aiVector3D* texCoord = mesh->HasTextureCoords(0) ? &(mesh->mTextureCoords[0][i]) : &Zero3D;
 
-        cout << "Vert: ( " << pos->x << " , " << pos->y << " , " << pos->z << " ) " << endl;
-        cout << "Normal: ( " << pos->x << " , " << pos->y << " , " << pos->z << " ) " << endl;
-        cout << "texCoord: ( " << texCoord->x << " , " << texCoord->y << " ) " << endl;
+        // cout << "Vert: ( " << pos->x << " , " << pos->y << " , " << pos->z << " ) " << endl;
+        // cout << "Normal: ( " << pos->x << " , " << pos->y << " , " << pos->z << " ) " << endl;
+        // cout << "texCoord: ( " << texCoord->x << " , " << texCoord->y << " ) " << endl;
 
         Vertex v(glm::vec3(pos->x, pos->y, pos->z),
                  glm::vec2(texCoord->x, texCoord->y),

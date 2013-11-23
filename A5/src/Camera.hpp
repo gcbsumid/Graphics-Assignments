@@ -10,7 +10,7 @@
 
 class Camera : public Entity {
 public:
-    Camera(float fov = 60.0f,
+    Camera(float fov = 90.0f,
                float near = 1.0f,
                float far = 100.0f,
                float aspect = 1.0f);
@@ -19,9 +19,11 @@ public:
 
     // the combined camera transformation matrix
     glm::mat4 GetPerspMatrix();
-    virtual void UpdatePerspMatrix();
 
     virtual glm::vec3 GetPos();
+
+    void OffsetOrientation(float upOffset, float rightOffset);
+    virtual glm::mat4 GetRotate();
 
     float FieldOfView() const;
     void SetFieldOfView(const float fieldOfView);
@@ -50,6 +52,9 @@ private:
 
     // glm::vec3 mPosition; 
     bool mNeedUpdate;
+
+    float mVerticalAngle;
+    float mHorizontalAngle;
 };
 
 #endif

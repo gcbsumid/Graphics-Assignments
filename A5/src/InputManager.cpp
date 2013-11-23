@@ -36,13 +36,13 @@ void InputManager::HandleKeyPress(double elapsedTime) {
 
     if (glfwGetKey('S')) {
         // std::cout << "Moving backwards!" << std::endl;
-        std::cout << "Pressing S! " << std::endl;
+        // std::cout << "Pressing S! " << std::endl;
         glm::vec3 bck = camera->Forward() * -0.2f;
         camera->Translate(bck);
         // cameraComp->MoveCamera(elapsedTime, -cameraComp->Forward());
     } else if (glfwGetKey('W')) {
         // std::cout << "Moving forward!" << std::endl;
-        std::cout << "Pressing W! " << std::endl;
+        // std::cout << "Pressing W! " << std::endl;
         glm::vec3 fwd = camera->Forward() * 0.2f;
         camera->Translate(fwd);
         // cameraComp->MoveCamera(elapsedTime, cameraComp->Forward());
@@ -50,20 +50,20 @@ void InputManager::HandleKeyPress(double elapsedTime) {
 
     if (glfwGetKey('A')){
         // std::cout << "Strafing left!" << std::endl;
-        std::cout << "Pressing A! " << std::endl;
+        // std::cout << "Pressing A! " << std::endl;
         glm::vec3 left = camera->Right() * -0.2f;
         camera->Translate(left);
         // cameraComp->MoveCamera(elapsedTime, -cameraComp->Right());
     } else if (glfwGetKey('D')){
         // std::cout << "Strafing right!" << std::endl;
-        std::cout << "Pressing D! " << std::endl;
+        // std::cout << "Pressing D! " << std::endl;
         glm::vec3 right = camera->Right() * 0.2f;
         camera->Translate(right);
         // cameraComp->MoveCamera(elapsedTime, cameraComp->Right());
     }
 
     if (glfwGetKey('L')) {
-        std::cout << "Pressing L! " << std::endl;
+        // std::cout << "Pressing L! " << std::endl;
         mLightStatus = !mLightStatus;
     }
 }
@@ -71,22 +71,13 @@ void InputManager::HandleKeyPress(double elapsedTime) {
 void InputManager::HandleMouseMotion(double elapsedTime) {
     int mouseX = 0, mouseY = 0;
     glfwGetMousePos(&mouseX, &mouseY);
-    std::cout << "mUpAngle " << mUpAngle << std::endl;
-    std::cout << "mRightAngle " << mRightAngle << std::endl;
+    // std::cout << "mUpAngle " << mUpAngle << std::endl;
+    // std::cout << "mRightAngle " << mRightAngle << std::endl;
     mouseX *= 0.1;
-    mouseY *= 0.1;
+    mouseY *= -0.1;
     if (mouseX || mouseY) {
-        mUpAngle += mouseY;
-        mRightAngle += mouseX;
-
         auto camera = mCamera.lock();
-        if (mUpAngle < 75.0f && mUpAngle > -75.0f) {
-            cout << "I'm rotating up." << std::endl;
-            camera->Rotate('x', mouseY);
-        }
-
-        // if (mRightAngle )
-        camera->Rotate('y', mouseX);
+        camera->OffsetOrientation(mouseY, mouseX);
 
         // cameraComp->OffsetOrientation(utility::MOUSE_SENSITIVITY * mouseY, utility::MOUSE_SENSITIVITY * mouseX);
         glfwSetMousePos(0,0);
