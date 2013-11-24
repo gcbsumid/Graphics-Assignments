@@ -24,12 +24,22 @@ struct WE_Vertex {
     std::vector<WE_Face> mFaces;    // Do I need this? According to wikipedia, I don't.
     glm::vec3 mPosition;
     glm::vec3 mAvgNormal;
+    glm::vec2 mTexCoord;    // (u,v)
+
+    int mIndex;
+
+
+    WE_Vertex() : mPosition(glm::vec3(0,0,0))
+             , mAvgNormal(glm::vec3(0,0,1))
+             , mTexCoord(glm::vec2(0,0)) {}
 };
 
 struct WE_Face {
-    std::vector<WE_Edge*> mEdges;
+    std::vector<WE_Edge*> mEdges; 
 
     // Object Data
+    glm::vec3 mAvgNormal;
+    WE_Face() : mAvgNormal(glm::vec3(0,0,1)) {}
 };
 
 struct WE_Edge {
@@ -37,25 +47,34 @@ struct WE_Edge {
     WE_Face *mFaceA, *mFaceB;
     WE_Edge *mPrevA, *mNextA, *mPrevB, *mNextB;
 
+    WE_Edge() : mVert1(nullptr)
+              , mVert2(nullptr)
+              , mFaceA(nullptr)
+              , mFaceB(nullptr)
+              , mPrevA(nullptr)
+              , mNextA(nullptr)
+              , mPrevB(nullptr)
+              , mNextB(nullptr) {}
+
     // Object Data
 };
 
-struct Vertex {
-    // float x, y, z;    // (x,y,z)
-    glm::vec3 mPosition;
-    glm::vec2 mTexCoord;    // (u,v)
-    glm::vec3 mNormal;      // (x,y,z)
+// struct Vertex {
+//     // float x, y, z;    // (x,y,z)
+//     glm::vec3 mPosition;
+//     glm::vec2 mTexCoord;    // (u,v)
+//     glm::vec3 mNormal;      // (x,y,z)
 
-    Vertex() {};
-    Vertex(const glm::vec3& pos, const glm::vec2& tex, const glm::vec3 normal) {
-        // x = pos.x;
-        // y = pos.y;
-        // z = pos.z;
-        mPosition = pos;
-        mTexCoord = tex;
-        mNormal = normal;
-    }
-};
+//     Vertex() {};
+//     Vertex(const glm::vec3& pos, const glm::vec2& tex, const glm::vec3 normal) {
+//         // x = pos.x;
+//         // y = pos.y;
+//         // z = pos.z;
+//         mPosition = pos;
+//         mTexCoord = tex;
+//         mNormal = normal;
+//     }
+// };
 
 class Mesh
 {
@@ -70,27 +89,53 @@ public:
 
 private:
     bool InitFromScene(const aiScene* pScene, const std::string& Filename);
-    void InitMesh(unsigned int Index, const aiMesh* paiMesh);
+    bool InitOpenGLData(std::vector<unsigned int>& indices, 
+                        std::vector<glm::vec3>& positions,
+                        std::vector<glm::vec3>& normals,
+                        std::vector<glm::vec2>& texcoords);
+    void InitMesh(unsigned int index, 
+                  const aiMesh* mesh, 
+                  std::vector<glm::vec3>& position,
+                  std::vector<glm::vec3>& normal,
+                  std::vector<glm::vec2>& texcoord,
+                  std::vector<unsigned int>& indices);
     bool InitMaterials(const aiScene* pScene, const std::string& Filename);
     void SetMaterialData(const aiMaterial* material, Texture* texture);
     void Clear();
 
 #define INVALID_MATERIAL 0xFFFFFFFF
+#define INVALID_OGL_VALUE 0xFFFFFFFF
+
+// Buffer Data indices
+#define INDEX_BUFFER    0
+#define POSITION_VB     1
+#define NORMAL_VB       2
+#define TEXCOORD_VB     3
+#define MAX_BUFFERS     4
+
+// Vertex Attrib Positions
+#define POSITION_LOCATION 0
+#define NORMAL_LOCATION 1
+#define TEXCOORD_LOCATION 2
 
     struct MeshEntry {
         MeshEntry();
 
         ~MeshEntry();
 
-        bool Init(const std::vector<Vertex>& Vertices,
-                  const std::vector<unsigned int>& Indices);
-
-        GLuint mVertexBuffer;
-        GLuint mIndexBuffer;
-        GLuint mVertexArray;
+        std::vector<WE_Vertex*> mVertices;
+        std::vector<WE_Face*> mFaces;
+        std::vector<WE_Edge*> mEdges;
+        // GLuint mVertexBuffer;
+        // GLuint mIndexBuffer;
         unsigned int mNumIndices;
         unsigned int mMaterialIndex;
+        unsigned int mBaseVertex;
+        unsigned int mBaseIndex;
     };
+
+    GLuint mVertexArray;
+    GLuint mBuffers[MAX_BUFFERS];
 
     std::vector<MeshEntry> mEntries;
     std::vector<Texture*> mTextures;

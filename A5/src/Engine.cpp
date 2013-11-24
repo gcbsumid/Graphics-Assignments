@@ -16,7 +16,7 @@ const glm::vec2 SCREEN_SIZE(800, 600);
 Engine::Engine() {
 
     if (!glfwInit()) 
-        throw std::runtime_error("glfwInit failed.");
+        throw runtime_error("glfwInit failed.");
 
 
     // open a window in GLFW
@@ -25,21 +25,21 @@ Engine::Engine() {
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
     glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
     if (!glfwOpenWindow(512, 512, 8, 8, 8, 8, 16, 0, GLFW_WINDOW))
-        throw std::runtime_error("glfwOpenWindow failed. Hardware can't handle OpenGL 3.3");
+        throw runtime_error("glfwOpenWindow failed. Hardware can't handle OpenGL 3.3");
 
     // initialise GLEW
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
-        throw std::runtime_error("glewInit failed");
+        throw runtime_error("glewInit failed");
 
     // initialize GLEW
     if (!GLEW_VERSION_3_3) 
-        throw std::runtime_error("OpenGL 3.3 Api is not available.");
+        throw runtime_error("OpenGL 3.3 Api is not available.");
 
-    std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
-    std::cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-    std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
-    std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
+    cout << "OpenGL version: " << glGetString(GL_VERSION) << endl;
+    cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+    cout << "Vendor: " << glGetString(GL_VENDOR) << endl;
+    cout << "Renderer: " << glGetString(GL_RENDERER) << endl;
 
     glfwDisable(GLFW_MOUSE_CURSOR);
     glfwSetMousePos(0,0);

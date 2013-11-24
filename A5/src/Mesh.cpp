@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 
 // Standard Library
+#include <stdexcept>
 #include <iostream>
 #include <cassert>
 
@@ -13,57 +14,38 @@
 
 using namespace std;
 
-static const GLuint INVALID_OGL_VALUE = 0xFFFFFFFF;
-
 static void color4_to_float4 (const aiColor4D *c, glm::vec4& f) {
     f = glm::vec4(c->r, c->g, c->b, c->a);
 }
 
-Mesh::MeshEntry::MeshEntry(){
-    mVertexBuffer = INVALID_OGL_VALUE;
-    mIndexBuffer = INVALID_OGL_VALUE;
-    mNumIndices = 0;
-    mMaterialIndex = INVALID_MATERIAL;
-    // mMaterialName = "";
-    // mName = "";
+Mesh::MeshEntry::MeshEntry()
+    : mNumIndices(0)
+    , mMaterialIndex(INVALID_MATERIAL)
+    , mBaseVertex(0)
+    , mBaseIndex(0) 
+{
 }
 
 Mesh::MeshEntry::~MeshEntry() {
-    if (mVertexBuffer != INVALID_OGL_VALUE) {
-        glDeleteBuffers(1, &mVertexBuffer);
-    }
 
-    if (mIndexBuffer != INVALID_OGL_VALUE) {
-        glDeleteBuffers(1, &mIndexBuffer);
-    }
 }
 
-bool Mesh::MeshEntry::Init(const std::vector<Vertex>& vertices, 
-                const std::vector<unsigned int>& indices) {
-                // const AABB& box) {
-    mNumIndices = indices.size();
-
-    glGenBuffers(1, &mIndexBuffer) ;
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mNumIndices, &indices[0], GL_STATIC_DRAW);
-
-    glGenBuffers(1, &mVertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
-        
-    glGenVertexArrays(1, &mVertexArray);
-    glBindVertexArray(mVertexArray);
-
-    return true;
+Mesh::Mesh(){
+    for (int i = 0; i < MAX_BUFFERS; ++i) {
+        mBuffers[i] = INVALID_OGL_VALUE;
+    }
 }
-
-Mesh::Mesh(){}
 
 Mesh::~Mesh() {
     Clear();
 }
 
 void Mesh::Clear() {
+    for (int i = 0; i < MAX_BUFFERS; ++i) {
+        if (mBuffers[i] != INVALID_OGL_VALUE) {
+            glDeleteBuffers(1, &mBuffers[i]);
+        }
+    }
     for (unsigned int i = 0; i < mTextures.size(); ++i) {
         delete mTextures.at(i);
     }
@@ -92,54 +74,206 @@ bool Mesh::LoadMesh(const string& filename) {
 bool Mesh::InitFromScene(const aiScene* scene, const string& filename) {
     mEntries.resize(scene->mNumMeshes);
     mTextures.resize(scene->mNumMaterials);
+    vector<unsigned int> indices;
+    vector<glm::vec3> positions;
+    vector<glm::vec3> normals;
+    vector<glm::vec2> texcoords;
 
     // Initialize the meshes in the scene one by one
+    unsigned int totalNumOfVertices = 0;
+    unsigned int totalNumOfIndices = 0;
     for (unsigned int i = 0; i < mEntries.size(); ++i) {
         const aiMesh* mesh = scene->mMeshes[i];
-        InitMesh(i, mesh);
+        InitMesh(i, mesh, positions, normals, texcoords, indices);
+        mEntries.at(i).mBaseVertex = totalNumOfVertices;
+        mEntries.at(i).mBaseIndex = totalNumOfIndices;
+
+        assert(mEntries.at(i).mVertices.size() == scene->mMeshes[i]->mNumVertices);
+        totalNumOfVertices += scene->mMeshes[i]->mNumVertices;
+        totalNumOfIndices += mEntries.at(i).mNumIndices;    
     }
 
-    return InitMaterials(scene, filename);
+    // Set Materials
+    if (!InitMaterials(scene, filename)) {
+        return false;
+    }
+
+    return InitOpenGLData(indices, positions, normals, texcoords);
 }
 
-void Mesh::InitMesh(unsigned int index, const aiMesh* mesh) {
-    mEntries[index].mMaterialIndex = mesh->mMaterialIndex;
+bool Mesh::InitOpenGLData(std::vector<unsigned int>& indices, 
+                          std::vector<glm::vec3>& positions,
+                          std::vector<glm::vec3>& normals,
+                          std::vector<glm::vec2>& texcoords) {
+    assert(positions.size() == normals.size() && normals.size() == texcoords.size());
 
-    vector<Vertex> vertices;
-    vector<unsigned int> indices;
+    // Generate Vertex Array  
+    if (mVertexArray != INVALID_OGL_VALUE) {
+        glDeleteVertexArrays(1, &mVertexArray);
+    }
+    glGenVertexArrays(1, &mVertexArray);
+    glBindVertexArray(mVertexArray);
+
+    // Generate buffers for the indices
+    if (mBuffers[INDEX_BUFFER] != INVALID_OGL_VALUE) {
+        glDeleteBuffers(1, &mBuffers[INDEX_BUFFER]);
+    } 
+    glGenBuffers(1, &mBuffers[INDEX_BUFFER]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mBuffers[INDEX_BUFFER]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
+
+    // Generate buffers for positions
+    if (mBuffers[POSITION_VB] != INVALID_OGL_VALUE) {
+        glDeleteBuffers(1, &mBuffers[POSITION_VB]);
+    }
+    glGenBuffers(1, &mBuffers[POSITION_VB]);
+    glBindBuffer(GL_ARRAY_BUFFER, mBuffers[POSITION_VB]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)* positions.size(), &positions[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(POSITION_LOCATION);
+    glVertexAttribPointer(POSITION_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, 0);    
+
+    // Generate buffers for normals
+    if (mBuffers[NORMAL_VB] != INVALID_OGL_VALUE) {
+        glDeleteBuffers(1, &mBuffers[NORMAL_VB]);
+    }
+    glGenBuffers(1, &mBuffers[NORMAL_VB]);
+    glBindBuffer(GL_ARRAY_BUFFER, mBuffers[NORMAL_VB]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)* normals.size(), &normals[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(NORMAL_LOCATION);
+    glVertexAttribPointer(NORMAL_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, 0);    
+
+    // Generate buffers for texcoords
+    if (mBuffers[TEXCOORD_VB] != INVALID_OGL_VALUE) {
+        glDeleteBuffers(1, &mBuffers[TEXCOORD_VB]);
+    }
+    glGenBuffers(1, &mBuffers[TEXCOORD_VB]);
+    glBindBuffer(GL_ARRAY_BUFFER, mBuffers[TEXCOORD_VB]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)* texcoords.size(), &texcoords[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(TEXCOORD_LOCATION);
+    glVertexAttribPointer(TEXCOORD_LOCATION, 2, GL_FLOAT, GL_FALSE, 0, 0);    
+
+    return (glGetError() == GL_NO_ERROR);
+
+}
+
+
+void Mesh::InitMesh(unsigned int index, 
+                    const aiMesh* mesh, 
+                    vector<glm::vec3>& position,
+                    vector<glm::vec3>& normal,
+                    vector<glm::vec2>& texcoord,
+                    vector<unsigned int>& indices) {
+    mEntries[index].mMaterialIndex = mesh->mMaterialIndex;
 
     const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 
-    cout << "Buffer Size: " << mesh->mNumVertices << endl;
-    cout << "Indices Size: " << mesh->mNumFaces*3 << endl;
+    // cout << "Buffer Size: " << mesh->mNumVertices << endl;
+    // cout << "Indices Size: " << mesh->mNumFaces*3 << endl;
 
+    // Set mVertices for the mesh
     for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
-        const aiVector3D* pos      = &(mesh->mVertices[i]);
-        const aiVector3D* normal   = &(mesh->mNormals[i]);
-        const aiVector3D* texCoord = mesh->HasTextureCoords(0) ? &(mesh->mTextureCoords[0][i]) : &Zero3D;
+        const aiVector3D* v_pos      = &(mesh->mVertices[i]);
+        const aiVector3D* v_normal   = &(mesh->mNormals[i]);
+        const aiVector3D* v_texCoord = mesh->HasTextureCoords(0) ? &(mesh->mTextureCoords[0][i]) : &Zero3D;
+        
+        WE_Vertex* v = new WE_Vertex();
+        v->mPosition = glm::vec3(v_pos->x, v_pos->y, v_pos->z);
+        v->mAvgNormal = glm::vec3(v_normal->x, v_normal->y, v_normal->z);
+        v->mTexCoord = glm::vec2(v_texCoord->x, v_texCoord->y);
+        v->mIndex = i;
+        mEntries[index].mVertices.push_back(v);
 
-        // cout << "Vert: ( " << pos->x << " , " << pos->y << " , " << pos->z << " ) " << endl;
-        // cout << "Normal: ( " << pos->x << " , " << pos->y << " , " << pos->z << " ) " << endl;
-        // cout << "texCoord: ( " << texCoord->x << " , " << texCoord->y << " ) " << endl;
-
-        Vertex v(glm::vec3(pos->x, pos->y, pos->z),
-                 glm::vec2(texCoord->x, texCoord->y),
-                 glm::vec3(normal->x, normal->y, normal->z));
-
-        vertices.push_back(v);
+        position.push_back(v->mPosition);
+        normal.push_back(v->mAvgNormal);
+        texcoord.push_back(v->mTexCoord);
     }
 
-    // cout << "Num Of Vertices = " << vertices.size() << std::endl;
-
+    // Set mFaces and mEdges for the mesh
     for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
         const aiFace& face = mesh->mFaces[i];
         assert(face.mNumIndices == 3); // After being triangulated
-        indices.push_back(face.mIndices[0]);
-        indices.push_back(face.mIndices[1]);
-        indices.push_back(face.mIndices[2]);            
+
+        WE_Face* we_face = new WE_Face();
+        mEntries[index].mFaces.push_back(we_face);
+
+        // Creating the Edges
+        WE_Edge* prev = nullptr;
+        for (unsigned int j = 0; j < face.mNumIndices; ++j) {
+            WE_Vertex* vert1 = mEntries[index].mVertices.at(face.mIndices[j]);
+            WE_Vertex* vert2 = mEntries[index].mVertices.at(face.mIndices[(j+1)%face.mNumIndices]);
+
+            // pushing vertex 1 onto the indices ~ this will always be true
+            indices.push_back(vert1->mIndex);
+
+            // Determine whether the edge already exists
+            WE_Edge* edge = NULL;
+            for (unsigned int k = 0; k < vert1->mEdges.size(); k++) {
+                if (vert1 == vert1->mEdges.at(k)->mVert2) {
+                    edge = vert1->mEdges.at(k);
+                    break;
+                }
+            }
+
+            if (edge) {
+                // Check that the edge will only every appear twice
+                if (edge->mFaceA && edge->mFaceB) {
+                    throw runtime_error("Error: This edge is already used twice.");
+                }
+
+                // If it does exist, this means that this face is B
+                edge->mFaceB = we_face;
+
+                if (prev) {
+                    // Set the next and prev if it's not the first edge
+                    prev->mNextB = edge;
+                    edge->mPrevB = prev;
+                } 
+            } else {
+                // If it doesn't, this means that this face is A 
+                // and we have to create the edge
+                edge = new WE_Edge();
+                mEntries[index].mEdges.push_back(edge);
+
+                // Set the vertices
+                edge->mVert1 = vert1;
+                edge->mVert2 = vert2;
+
+                // Set the face
+                edge->mFaceA = we_face;
+
+                if (prev) {
+                    // Set the next and prev if it's not the first edge
+                    prev->mNextA = edge;
+                    edge->mPrevA = prev;
+                }
+
+                // Push the edge onto the vertex's edge list
+                vert1->mEdges.push_back(edge);
+                vert2->mEdges.push_back(edge);
+            }
+            prev = edge;
+
+            // Push the edge onto the face's edge list
+            we_face->mEdges.push_back(edge);
+        }
+
+        // Set the prev of the first edge 
+        if (we_face->mEdges.at(0)->mPrevA == nullptr) {
+            we_face->mEdges.at(0)->mPrevA = we_face->mEdges.at(face.mNumIndices-1);
+        } else {
+            we_face->mEdges.at(0)->mPrevB = we_face->mEdges.at(face.mNumIndices-1);
+        }
+
+        // Set the next of the last edge
+        if (we_face->mEdges.at(face.mNumIndices-1)->mNextA == nullptr) {
+            we_face->mEdges.at(face.mNumIndices-1)->mNextA = we_face->mEdges.at(0);
+        } else {
+            we_face->mEdges.at(face.mNumIndices-1)->mNextB = we_face->mEdges.at(0);
+        }         
     }
 
-    mEntries[index].Init(vertices, indices);
+    // TODO: Change this to account for 4 vertices?
+    mEntries.at(index).mNumIndices = mesh->mNumFaces*3;
 }
 
 
@@ -193,40 +327,35 @@ bool Mesh::InitMaterials(const aiScene* scene, const string& filename)
 
 void Mesh::Render(std::shared_ptr<Program> shader)
 {
+    // TODO: Fix Render
     assert(shader->IsInUse());
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-
     // cout << "mEntries = " << mEntries.size() << endl;
 
+    
+    glBindVertexArray(mVertexArray);
     for (unsigned int i = 0 ; i < mEntries.size() ; i++) {
-
-        glBindBuffer(GL_ARRAY_BUFFER, mEntries[i].mVertexBuffer);
-        glBindVertexArray(mEntries[i].mVertexArray);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEntries[i].mIndexBuffer);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)12);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)20);
-
-
+        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEntries[i].mBuffers[INDEX_BUFFER]);
         // cout << "Index buffer: " << mEntries[i].mIndexBuffer << std::endl;
         // cout << "Vertex buffer: " << mEntries[i].mVertexBuffer << std::endl;
         // cout << "Num of Indicies: " << mEntries[i].mNumIndices << std::endl;
         const unsigned int materialIndex = mEntries[i].mMaterialIndex;
 
         if (materialIndex < mTextures.size() && mTextures[materialIndex]) {
-            cout << "I'm binding a texture in Mesh::Render() " << endl;
+            // cout << "I'm binding a texture in Mesh::Render() " << endl;
             mTextures[materialIndex]->Bind(shader);
         }
 
-        glDrawElements(GL_TRIANGLES, mEntries[i].mNumIndices, GL_UNSIGNED_INT, NULL);
+        glDrawElementsInstancedBaseVertex(GL_TRIANGLES,
+                                          mEntries.at(i).mNumIndices,
+                                          GL_UNSIGNED_INT,
+                                          (void*)(sizeof(unsigned int) * mEntries.at(i).mBaseIndex),
+                                          1, // TODO: account for multiple instances
+                                          mEntries.at(i).mBaseVertex);
+
+        // glDrawElements(GL_TRIANGLES, mEntries[i].mNumIndices, GL_UNSIGNED_INT, NULL);
     }
 
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
+    glBindVertexArray(0);
 }
 
 void Mesh::SetMaterialData(const aiMaterial* material, Texture* texture) {
