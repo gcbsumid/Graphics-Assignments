@@ -1,5 +1,5 @@
-#ifndef MESH_H
-#define MESH_H
+#ifndef MESH_HPP
+#define MESH_HPP
 
 // GLM Library
 #include <glm/glm.hpp>
@@ -20,8 +20,9 @@ struct WE_Edge;
 struct WE_Vertex {
     std::vector<WE_Edge*> mEdges;
 
+    void GetFaces(std::vector<WE_Face*>& faces);
+
     // Object Data
-    std::vector<WE_Face> mFaces;    // Do I need this? According to wikipedia, I don't.
     glm::vec3 mPosition;
     glm::vec3 mAvgNormal;
     glm::vec2 mTexCoord;    // (u,v)
@@ -37,9 +38,11 @@ struct WE_Vertex {
 struct WE_Face {
     std::vector<WE_Edge*> mEdges; 
 
+    void GetVertices(std::vector<WE_Vertex*>& vertices);
+
     // Object Data
-    glm::vec3 mAvgNormal;
-    WE_Face() : mAvgNormal(glm::vec3(0,0,1)) {}
+    WE_Face() : mFaceNormal(glm::vec3(0,0,1)) {}
+    glm::vec3 mFaceNormal;
 };
 
 struct WE_Edge {
@@ -81,13 +84,13 @@ class Mesh
 public:
     Mesh();
 
-    ~Mesh();
+    virtual ~Mesh();
 
     bool LoadMesh(const std::string& Filename);
 
-    void Render(std::shared_ptr<Program> shader);
+    virtual void Render(std::shared_ptr<Program> shader);
 
-private:
+protected:
     bool InitFromScene(const aiScene* pScene, const std::string& Filename);
     bool InitOpenGLData(std::vector<unsigned int>& indices, 
                         std::vector<glm::vec3>& positions,
@@ -101,7 +104,7 @@ private:
                   std::vector<unsigned int>& indices);
     bool InitMaterials(const aiScene* pScene, const std::string& Filename);
     void SetMaterialData(const aiMaterial* material, Texture* texture);
-    void Clear();
+    virtual void Clear();
 
 #define INVALID_MATERIAL 0xFFFFFFFF
 #define INVALID_OGL_VALUE 0xFFFFFFFF

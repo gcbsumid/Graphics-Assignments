@@ -14,6 +14,33 @@
 
 using namespace std;
 
+/******************************* WE_Vertex *******************************/
+
+void WE_Vertex::GetFaces(std::vector<WE_Face*>& faces) {
+    for (auto& edge : mEdges) {
+        if (edge->mVert1 == this && edge->mFaceA) {
+            faces.push_back(edge->mFaceA);
+        } else if (edge->mVert2 == this && edge->mFaceB) {
+            faces.push_back(edge->mFaceB);
+        }
+    }
+}
+
+/********************************* WE_Face *******************************/
+
+void WE_Face::GetVertices(std::vector<WE_Vertex*>& vertices) {
+    for (auto& edge : mEdges) {
+        if (edge->mFaceA == this) {
+            vertices.push_back(edge->mVert1);
+        } else if (edge->mFaceB == this) {
+            vertices.push_back(edge->mVert2);
+        }
+    }
+}
+
+/********************************** Mesh *********************************/
+
+
 static void color4_to_float4 (const aiColor4D *c, glm::vec4& f) {
     f = glm::vec4(c->r, c->g, c->b, c->a);
 }
