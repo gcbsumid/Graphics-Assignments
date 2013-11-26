@@ -18,10 +18,20 @@ bool GroundTechnique::Init() {
         return false;
     }
 
-    mWVPLocation = mProgram->Uniform("mvp_matrix");
+    mPerspectiveLocation = mProgram->Uniform("persp_matrix");
+    mModelLocation = mProgram->Uniform("model_matrix");
+    // mWVPLocation = mProgram->Uniform("wvp_matrix");
     return Technique::Init();
 }
 
-void GroundTechnique::SetWVP(const glm::mat4& wvp) {
-    glUniformMatrix4fv(mWVPLocation, 1, GL_TRUE, glm::value_ptr(wvp));
+void GroundTechnique::SetPerspectiveMatrix(const glm::mat4& persp) {
+    glUniformMatrix4fv(mPerspectiveLocation, 1, GL_TRUE, glm::value_ptr(persp));
+}
+
+void GroundTechnique::SetModelMatrix(const glm::mat4& model) {
+    glUniformMatrix4fv(mModelLocation, 1, GL_TRUE, glm::value_ptr(model));
+}
+
+void GroundTechnique::SetWVPMatrix(const glm::mat4& mvp) {
+    glUniformMatrix4fv(mWVPLocation, 1, GL_TRUE, glm::value_ptr(mvp));
 }

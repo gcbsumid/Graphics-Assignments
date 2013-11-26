@@ -38,9 +38,9 @@ protected:
 
     glm::mat4 mTransform;
 
-    glm::mat4 mTranslate;
+    glm::vec3 mPosition;
+    glm::vec3 mScale;
     glm::mat4 mRotate;
-    glm::mat4 mScale;
     // TODO: Bounding Box
 };
 

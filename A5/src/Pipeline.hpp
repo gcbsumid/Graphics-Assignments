@@ -10,6 +10,8 @@ public:
     void SetPerspective(const glm::mat4& persp);
     void SetCamera(const glm::vec3& pos, const glm::vec3& target, const glm::vec3& up);
 
+    const glm::mat4 GetPerspectiveCameraTrans();
+
     const glm::mat4 GetWVPTrans(glm::mat4 worldTransformation);
 
 private:

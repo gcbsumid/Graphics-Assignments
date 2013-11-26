@@ -36,7 +36,7 @@ shared_ptr<Program> Technique::GetProgram() {
 
 void Technique::Enable() {
     if (!mProgram->IsInUse()) {
-        std::cout << "I'm being enabled!" << std::endl;
+        // std::cout << "I'm being enabled!" << std::endl;
         mProgram->Use();
     }
 }

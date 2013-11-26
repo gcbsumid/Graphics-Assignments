@@ -38,8 +38,12 @@ glm::mat4 Camera::GetPerspMatrix() {
 
 }
 
+glm::mat4 Camera::GetGLMPerspMatrix() {
+    return glm::perspective(mFieldOfView, mViewportAspectRatio, mNearPlane, mFarPlane);
+}
+
 glm::vec3 Camera::GetPos() {
-    return glm::vec3(mTranslate * glm::vec4(0,0,0,1)) ;
+    return mPosition ;
 }
 
 void Camera::OffsetOrientation(float upAngle, float rightAngle) {

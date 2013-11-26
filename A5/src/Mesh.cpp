@@ -190,7 +190,7 @@ void Mesh::InitMesh(unsigned int index,
                     vector<glm::vec3>& normal,
                     vector<glm::vec2>& texcoord,
                     vector<unsigned int>& indices) {
-    mEntries[index].mMaterialIndex = mesh->mMaterialIndex;
+    mEntries.at(index).mMaterialIndex = mesh->mMaterialIndex;
 
     const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 
@@ -208,7 +208,7 @@ void Mesh::InitMesh(unsigned int index,
         v->mAvgNormal = glm::vec3(v_normal->x, v_normal->y, v_normal->z);
         v->mTexCoord = glm::vec2(v_texCoord->x, v_texCoord->y);
         v->mIndex = i;
-        mEntries[index].mVertices.push_back(v);
+        mEntries.at(index).mVertices.push_back(v);
 
         position.push_back(v->mPosition);
         normal.push_back(v->mAvgNormal);
@@ -226,17 +226,18 @@ void Mesh::InitMesh(unsigned int index,
         // Creating the Edges
         WE_Edge* prev = nullptr;
         for (unsigned int j = 0; j < face.mNumIndices; ++j) {
-            WE_Vertex* vert1 = mEntries[index].mVertices.at(face.mIndices[j]);
-            WE_Vertex* vert2 = mEntries[index].mVertices.at(face.mIndices[(j+1)%face.mNumIndices]);
+            WE_Vertex* vert1 = mEntries.at(index).mVertices.at(face.mIndices[j]);
+            WE_Vertex* vert2 = mEntries.at(index).mVertices.at(face.mIndices[(j+1)%face.mNumIndices]);
 
             // pushing vertex 1 onto the indices ~ this will always be true
             indices.push_back(vert1->mIndex);
 
             // Determine whether the edge already exists
             WE_Edge* edge = NULL;
-            for (unsigned int k = 0; k < vert1->mEdges.size(); k++) {
-                if (vert1 == vert1->mEdges.at(k)->mVert2) {
-                    edge = vert1->mEdges.at(k);
+            for (unsigned int k = 0; k < vert2->mEdges.size(); k++) {
+                if (vert1 == vert2->mEdges.at(k)->mVert1 ||
+                    vert1 == vert2->mEdges.at(k)->mVert2) {
+                    edge = vert2->mEdges.at(k);
                     break;
                 }
             }

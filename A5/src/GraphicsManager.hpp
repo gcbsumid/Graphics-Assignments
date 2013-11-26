@@ -17,6 +17,7 @@
 #include "Texture.hpp"
 #include "Mesh.hpp"
 #include "Skybox.hpp"
+#include "Ground.hpp"
 
 class GraphicsManager {
 public:
@@ -40,6 +41,7 @@ public:
 
     void AttachCamera(std::shared_ptr<Camera>);
     void AttachSkybox(std::shared_ptr<Skybox>);
+    void AttachGround(std::shared_ptr<Ground>);
 private:
     // Pointers to other Managers;
     std::weak_ptr<InputManager> mInput;
@@ -50,6 +52,7 @@ private:
     // std::vector<std::weak_ptr<LightComp>> mLightComponents;
     std::weak_ptr<Camera> mCamera;
     std::weak_ptr<Skybox> mSkybox;
+    std::weak_ptr<Ground> mGround;
 
     // Shared with the resource manager
     // std::shared_ptr<std::map<std::string, Texture*>> mTextures;

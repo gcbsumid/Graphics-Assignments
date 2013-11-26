@@ -12,7 +12,6 @@ using namespace std;
 GraphicsManager::GraphicsManager(/*SDL_Window* window*/) 
     // : mWindow(window)
 {
-
 }
 
 GraphicsManager::~GraphicsManager() {
@@ -94,8 +93,14 @@ bool GraphicsManager::Render() {
     //     mTextures->at(materialName)->Unbind();
     // }
 
+    if (mGround.use_count()) {
+        auto ground = mGround.lock();
+        ground->Render();
+    }
+
     auto skybox = mSkybox.lock();
     skybox->Render();
+
 
     glfwSwapBuffers();
     // SDL_GL_SwapWindow(mWindow);
@@ -109,6 +114,10 @@ void GraphicsManager::AttachCamera(shared_ptr<Camera> camera) {
 // TODO: render Skybox
 void GraphicsManager::AttachSkybox(shared_ptr<Skybox> skybox) {
     mSkybox = skybox;
+}
+
+void GraphicsManager::AttachGround(std::shared_ptr<Ground> ground) {
+    mGround = ground;
 }
 
 // TODO: remove Generate Light Component

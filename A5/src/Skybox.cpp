@@ -126,9 +126,9 @@ bool Skybox::Render() {
 
     Pipeline pipeline;
     pipeline.SetPerspective(camera->GetPerspMatrix());
-    pipeline.SetCamera(-camera->GetPos(), -camera->Forward(), camera->Up());
+    pipeline.SetCamera(camera->GetPos(), camera->Forward(), camera->Up());
 
-    const glm::mat4 transform = GetTransform();
+    const glm::mat4 transform = glm::transpose(GetTransform());
 
     // glm::mat4 temp =  pipeline.GetWVPTrans(transform);
     // cout << "GetWVPTrans Transform of Entity: " << mID << endl;

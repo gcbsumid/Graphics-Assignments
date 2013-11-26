@@ -18,6 +18,7 @@
 #include "Component.hpp"
 #include "Camera.hpp"
 #include "Skybox.hpp"
+#include "Ground.hpp"
 
 typedef std::map<std::string, std::shared_ptr<Entity>> ENTITY_LIST;
 
@@ -60,6 +61,7 @@ private:
 
     std::shared_ptr<Camera> mCamera;
     std::shared_ptr<Skybox> mSkybox;
+    std::shared_ptr<Ground> mGround;
 
     // SDL_Window* mMainWindow;
     // SDL_GLContext mMainContext;

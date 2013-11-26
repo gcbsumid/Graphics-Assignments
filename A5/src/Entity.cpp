@@ -10,7 +10,9 @@ using namespace std;
 
 static int ID_ENT_COUNTER = 0;
 
-Entity::Entity() {
+Entity::Entity() 
+    : mPosition(0,0,0)
+    , mScale(1,1,1) {
     mID = ID_ENT_COUNTER++;
 }
 
@@ -39,18 +41,22 @@ int Entity::GetID() const {
 }
 
 glm::mat4 Entity::GetTransform() {
-    mTransform = mScale * mRotate * mTranslate;
+    mTransform = glm::scale(glm::mat4(), mScale);
+    mTransform *= mRotate;
+    mTransform *= glm::translate(glm::mat4(), mPosition);
+    // mTransform = 
+    // mScale * mRotate * 
     return mTransform;
 }
 
 void Entity::Scale(glm::vec3 scale) {
-    glm::mat4 s = glm::scale(glm::mat4(), scale);
-    mScale = mScale * s;
+    mScale = scale;
 }
 
 void Entity::Translate(glm::vec3 pos) {
-    glm::mat4 t = glm::translate(glm::mat4(), pos);
-    mTranslate = mTranslate * t;
+    // cout << "Moving towards: " << pos.x << ", " << pos.y << ", " << pos.z << endl;
+    mPosition += pos;
+    // cout << "Position is now at: " << mPosition.x << ", " << mPosition.y << ", " << mPosition.z << endl;
 }
 
 void Entity::Rotate(char axis, float angle) {
@@ -87,10 +93,10 @@ void Entity::DisplayTransform() {
 }
 
 glm::mat4 Entity::GetScale() const {
-    return mScale;
+    return glm::scale(glm::mat4(), mScale);
 }
 glm::mat4 Entity::GetTranslate() const {
-    return mTranslate;
+    return glm::translate(glm::mat4(), mPosition);
 }
 glm::mat4 Entity::GetRotate() const {
     return mRotate;

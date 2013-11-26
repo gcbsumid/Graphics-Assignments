@@ -206,7 +206,7 @@ void Engine::CreateObjects() {
     mGraphics->AttachCamera(mCamera);
     mInput->AttachCamera(mCamera);
 
-    mCamera->Translate(glm::vec3(0.0, 1.0, -300.0));
+    // mCamera->Translate(glm::vec3(0.0, 10.0, 0.0));
 
     CreateSkybox();
 }
@@ -223,15 +223,19 @@ void Engine::CreateSkybox() {
         "resources/nightsky_top.jpg",
         "resources/nightsky_front.jpg",
         "resources/nightsky_back.jpg");
-        // "resources/sp3right.jpg",
+    // "resources/sp3right.jpg",
         // "resources/sp3left.jpg",
         // "resources/sp3top.jpg",
         // "resources/sp3bot.jpg",
         // "resources/sp3front.jpg",
         // "resources/sp3back.jpg");
 
-    mSkybox->Scale(glm::vec3(300.0f, 300.0f, 300.0f));
-    mSkybox->Translate(mCamera->GetPos());
+    mSkybox->Scale(glm::vec3(200.0f, 200.0f, 200.0f));
+    // mSkybox->Translate(-mCamera->GetPos());
 
-    // TODO: SKYBOX
+    mGround = shared_ptr<Ground>(new Ground(mCamera, 20, 20, 5, -5));
+    // mGround->Translate(glm::vec3(-10,-10,-10));
+    mGround->Translate(glm::vec3(0,-10,0));
+    mGround->Scale(glm::vec3(100.0, 1.0, 100.0));
+    mGraphics->AttachGround(mGround);
 }

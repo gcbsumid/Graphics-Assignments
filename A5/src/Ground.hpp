@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Entity.hpp"
+#include "Mesh.hpp"
 #include "GroundTechnique.hpp"
 #include "GroundMesh.hpp"
 #include "Camera.hpp"
@@ -21,8 +22,8 @@
 class Ground : public Entity {
 public:
     Ground(const std::shared_ptr<Camera> camera,
-           unsigned int width, 
-           unsigned int length,
+           unsigned int gridX, 
+           unsigned int gridZ,
            double maxHeight,
            double minHeight);
 
@@ -31,7 +32,6 @@ public:
     bool Render();
 
 private:
-
     const std::weak_ptr<Camera> mCamera;
     std::shared_ptr<GroundTechnique> mGroundTech;
     std::shared_ptr<GroundMesh> mGroundMesh;
