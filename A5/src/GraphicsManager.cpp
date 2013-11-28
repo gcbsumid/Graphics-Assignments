@@ -9,154 +9,132 @@
 
 using namespace std;
 
-GraphicsManager::GraphicsManager(/*SDL_Window* window*/) 
-    // : mWindow(window)
+GraphicsManager::GraphicsManager() 
+    : mLightingTechnique(new LightingTechnique("./lighting.vert", "./lighting.frag"))
 {
 }
 
 GraphicsManager::~GraphicsManager() {
-    // for (auto& shader : mShaders) {
-    //     delete shader;
-    // }
 }
-
-// int GraphicsManager::LoadShaders(string vert_shader, string frag_shader) {
-//     vector<Shader> shaders;
-
-//     shaders.push_back(Shader::ShaderFromFile(vert_shader, GL_VERTEX_SHADER));
-//     shaders.push_back(Shader::ShaderFromFile(frag_shader, GL_FRAG_SHADER));
-
-//     mShaders.push_back(new Program(shaders));
-//     return (mShaders.size() - 1);
-// }
-
-// void GraphicsManager::SetActiveShader(int id) {
-//     assert(mShaders.size() > id && id >= 0);
-
-//     if (mActiveShader != NULL) {
-//         mActiveShader->Stop();
-//     }
-//     mActiveShader = mShaders.at(id);
-//     mActiveShader->Use();
-// }
 
 bool GraphicsManager::Render() {
     // assert(mActiveShader != NULL);
 
     glClearColor(0,0,0,1.0);
+
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // TODO: Redo a lot of this
-
-    // for (auto& drawCompPtr : mDrawComponents) {
-
-    //     auto drawComp = drawCompPtr.lock();
-    //     if (!drawComp)
-    //         throw std::runtime_error("Draw Component couldn't be locked when trying to render it.");
-
-    //     // If the shader for the object isn't active
-    //     if (!mActiveShader->IsInUse() || drawComp->GetShader() != mActiveShader) {
-    //         mActiveShader->Stop();
-    //         mActiveShader = drawComp->GetShader();
-    //         mActiveShader->Use(); 
-
-    //         // Set the Camera Variables for the Shader
-    //         auto camera = mCamera.lock();
-    //         if (!camera)
-    //             throw std::runtime_error("Camera Component couldn't be locked when trying to render it.");
+ 
+    // RenderSceneIntoDepth();
+    
+    // glEnable(GL_STENCIL_TEST);
             
-    //         if (!camera->Render(mActiveShader))
-    //             throw std::runtime_error("The Camera Component wasn't Rendered properly.");
+    // RenderShadowVolIntoStencil();
+    
+    RenderShadowedScene();
+    
+    // glDisable(GL_STENCIL_TEST);
+    
+    // RenderAmbientLight();
+    
+    glfwSwapBuffers();
 
-    //         // Render Light Components
-    //         if (mInput->GetLightStatus()) {
-    //             for (auto it : mLightComponents) {
-    //                 if (auto lightComp = (it).lock()) {
-    //                     if (!lightComp->Render(mActiveShader))
-    //                         throw std::runtime_error("The Light Component wasn't Rendered properly.");
-    //                 } else {
-    //                     throw std::runtime_error("Light Component couldn't be locked when trying to render it.");
-    //                 }
-    //             }
-    //         } else {
-    //             // TODO: flashlight light
-    //         }
-    //     }
+    return true;
+}
 
-    //     std::string materialName = drawComp->GetMaterialName();
-    //     mTextures->at(materialName)->Bind(mActiveShader);
+void GraphicsManager::RenderSceneIntoDepth() {
+    // glDrawBuffer(GL_NONE);
+    // glDepthMask(GL_TRUE);
+          
+    // mNullTech.Enable();
 
-    //     if (!drawComp->Render(mActiveShader)) {
-    //         throw std::runtime_error("The Draw Component wasn't drawn properly.");
-    //     }
+    // Pipeline p;
+    // auto camera = mCamera.lock();
+    // pipeline.SetPerspective(camera->GetPerspMatrix());
+    // pipeline.SetCamera(camera->GetPos(), camera->Forward(), camera->Up());
 
-    //     mTextures->at(materialName)->Unbind();
-    // }
+    // auto ground = mGround.lock();
+    // mNullTech->SetWVP(pipeline.GetWVPTrans(glm::transpose(ground->GetTransform())));
+}
+
+void GraphicsManager::RenderShadowVolumeIntoStencil() {
+    // glDrawBuffer(GL_NONE);
+    // glDepthMask(GL_FALSE);
+    
+    // glDisable(GL_CULL_FACE);
+                
+    // // We need the stencil test to be enabled but we want it
+    // // to succeed always. Only the depth test matters.
+    // glStencilFunc(GL_ALWAYS, 0, 0xff);
+
+    // glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+    // glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);       
+            
+    // mShadowVolTech.Enable();
+
+    // mShadowVolTech.SetLightPos(m_pointLight.Position);
+           
+    // Pipeline p;
+    // p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
+    // p.SetPerspectiveProj(m_persProjInfo);                       
+    // p.WorldPos(m_boxPos);        
+    // p.Rotate(0, m_scale, 0);
+    // m_ShadowVolTech.SetWorldMatrix(p.GetWorldTrans());
+    // m_ShadowVolTech.SetVP(p.GetVPTrans());
+    
+    // m_box.Render();        
+    
+    // glEnable(GL_CULL_FACE);
+}
+
+void GraphicsManager::RenderShadowedScene() {
+
+    for (unsigned int i = 0; i < mPointLights.size(); ++i) {
+        mPointLights.at(i)->mAmbientIntensity = 0.2f;
+        mPointLights.at(i)->mDiffuseIntensity = 0.8f;
+    }
+
+    mLightingTechnique->Enable();
+    mLightingTechnique->SetColorTextureUnit(0);
+    mLightingTechnique->SetPointLights(mPointLights.size(), mPointLights);
+    mLightingTechnique->SetSpotLights(mSpotLights.size(), mSpotLights);
 
     if (mGround.use_count()) {
         auto ground = mGround.lock();
         ground->Render();
     }
 
-    auto skybox = mSkybox.lock();
-    skybox->Render();
+    if (mSkybox.use_count()) {
+        auto skybox = mSkybox.lock();
+        skybox->Render();
+    }
+}
 
+void GraphicsManager::RenderAmbientLight() {
 
-    glfwSwapBuffers();
-    // SDL_GL_SwapWindow(mWindow);
-    return true;
 }
 
 void GraphicsManager::AttachCamera(shared_ptr<Camera> camera) {
     mCamera = camera;
 }
 
-// TODO: render Skybox
 void GraphicsManager::AttachSkybox(shared_ptr<Skybox> skybox) {
     mSkybox = skybox;
 }
 
-void GraphicsManager::AttachGround(std::shared_ptr<Ground> ground) {
+void GraphicsManager::AttachGround(shared_ptr<Ground> ground) {
     mGround = ground;
 }
 
-// TODO: remove Generate Light Component
-// void GraphicsManager::GenerateLightComp(shared_ptr<Entity> ent, 
-//     glm::vec3 color,
-//     glm::vec3 intensities,
-//     float attenuation,
-//     float ambientCoef)
-// {
-//     ent->AddComponent(new LightComp(ent, color, intensities, attenuation, ambientCoef));
-//     weak_ptr<LightComp> lightcomp = static_pointer_cast<LightComp>(ent->GetComponent(Component::COMPTYPE_LIGHT));
-//     mLightComponents.push_back(lightcomp);
-// }
+void GraphicsManager::AttachSpotLights(std::vector<std::shared_ptr<SpotLight>>& spotLights) {
+    mSpotLights = spotLights;
+}
+
+void GraphicsManager::AttachPointLights(std::vector<std::shared_ptr<PointLight>>& pointLights) {
+    mPointLights = pointLights;
+}
 
 void GraphicsManager::LinkInputManager(shared_ptr<InputManager> input) {
     assert(input.use_count());
     mInput = input;
 }
-
-// void GraphicsManager::LinkResourceManager(shared_ptr<ResourceManager> resource) {
-//     assert(resource.use_count());
-//     mResource = resource;
-//     resource->SetTextureSharedPtr(mTextures);
-//     resource->SetMeshSharedPtr(mMeshes);
-// }
-
-// void GraphicsManager::AttachShaderToEntity(shared_ptr<Entity> ent, int id) {
-//     assert(mShaders.size() > id && id >= 0);
-//     assert(ent->GetComponent(Component::COMPTYPE_DRAW) != nullptr);
-    
-//     shared_ptr<DrawComp> comp = static_pointer_cast<DrawComp>(ent->GetComponent(Component::COMPTYPE_DRAW));
-//     comp->SetShader(mShaders.at(id));
-// }
-
-// void GraphicsManager::AttachMeshToEntity(shared_ptr<Entity> ent, shared_ptr<Mesh> mesh) {
-//     // assert(mMeshes->size() > id && id >= 0);
-//     assert(ent.count() && mesh.count());
-//     assert(ent->GetComponent(Component::COMPTYPE_DRAW) != nullptr);
-    
-//     shared_ptr<DrawComp> comp = static_pointer_cast<DrawComp>(ent->GetComponent(Component::COMPTYPE_DRAW));
-//     comp->SetMesh(mesh);
-// }

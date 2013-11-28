@@ -27,8 +27,9 @@ struct WE_Vertex {
     glm::vec3 mAvgNormal;
     glm::vec2 mTexCoord;    // (u,v)
 
-    int mIndex;
+    unsigned int mIndex;
 
+    bool IsOnBorder();
 
     WE_Vertex() : mPosition(glm::vec3(0,0,0))
              , mAvgNormal(glm::vec3(0,0,1))
@@ -41,14 +42,25 @@ struct WE_Face {
     void GetVertices(std::vector<WE_Vertex*>& vertices);
 
     // Object Data
-    WE_Face() : mFaceNormal(glm::vec3(0,0,1)) {}
     glm::vec3 mFaceNormal;
+
+    // pointers for subdivision 
+    WE_Vertex* mFaceVertex;
+    
+    WE_Face() : mFaceNormal(glm::vec3(0,0,1)) 
+              , mFaceVertex(nullptr) {}
 };
 
 struct WE_Edge {
+    // Object Data
     WE_Vertex *mVert1, *mVert2;
     WE_Face *mFaceA, *mFaceB;
     WE_Edge *mPrevA, *mNextA, *mPrevB, *mNextB;
+
+    // Subdivision data
+    WE_Vertex* mMidPointVertex;
+
+    bool IsOnBorder();
 
     WE_Edge() : mVert1(nullptr)
               , mVert2(nullptr)
@@ -57,9 +69,8 @@ struct WE_Edge {
               , mPrevA(nullptr)
               , mNextA(nullptr)
               , mPrevB(nullptr)
-              , mNextB(nullptr) {}
-
-    // Object Data
+              , mNextB(nullptr)
+              , mMidPointVertex(nullptr) {}
 };
 
 // struct Vertex {
@@ -90,7 +101,19 @@ public:
 
     virtual void Render(std::shared_ptr<Program> shader);
 
+    void Subdivide(int numOfIteration);
+
 protected:
+
+    void SubdivideMeshEntry(int numOfIteration, int index);
+
+    void CreateFace(std::vector<WE_Edge*>& edges_list, 
+                      std::vector<WE_Face*>& face_list, 
+                      std::vector<WE_Vertex*>& face_vertices,
+                      std::vector<unsigned int>& indices);
+
+    void GetVertexNormal(WE_Vertex* vert, std::vector<glm::vec3>& normals);
+
     bool InitFromScene(const aiScene* pScene, const std::string& Filename);
     bool InitOpenGLData(std::vector<unsigned int>& indices, 
                         std::vector<glm::vec3>& positions,

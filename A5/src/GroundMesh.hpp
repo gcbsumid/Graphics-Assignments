@@ -24,8 +24,8 @@ public:
 
 protected:
 
-    void CreateFace(std::vector<unsigned int>& face_indices, 
-                    std::vector<unsigned int>& indices);
+    // void CreateFace(std::vector<unsigned int>& face_indices, 
+    //                 std::vector<unsigned int>& indices);
     double height(double currentHeight);
 
     std::vector<WE_Vertex*> mVertices;

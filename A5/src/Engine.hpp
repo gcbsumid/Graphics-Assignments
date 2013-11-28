@@ -19,6 +19,7 @@
 #include "Camera.hpp"
 #include "Skybox.hpp"
 #include "Ground.hpp"
+#include "LightingTechnique.hpp"
 
 typedef std::map<std::string, std::shared_ptr<Entity>> ENTITY_LIST;
 
@@ -46,9 +47,9 @@ private:
     void CreateObjects();
 
     void CreateSkybox(); 
+    void CreateLights();
     // void CreateScene();
     // void CreatePlayer();
-    // void CreateLight();
 
     std::shared_ptr<GraphicsManager> mGraphics;
     std::shared_ptr<InputManager> mInput;
@@ -62,6 +63,9 @@ private:
     std::shared_ptr<Camera> mCamera;
     std::shared_ptr<Skybox> mSkybox;
     std::shared_ptr<Ground> mGround;
+
+    std::vector<std::shared_ptr<SpotLight>> mSpotLights;
+    std::vector<std::shared_ptr<PointLight>> mPointLights;
 
     // SDL_Window* mMainWindow;
     // SDL_GLContext mMainContext;

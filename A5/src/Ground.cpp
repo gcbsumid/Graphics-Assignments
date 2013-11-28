@@ -12,20 +12,29 @@ Ground::Ground(const std::shared_ptr<Camera> camera,
        double maxHeight,
        double minHeight) 
     : mCamera(camera)
-    , mGroundTech(new GroundTechnique())
+    , mGroundTech(new LightingTechnique("./ground.vert", "./ground.frag"))
 {
-    if (!mGroundTech->Init()) {
-        cerr << "Error at Ground Technique Initialization." << endl;
-    }
+    // if (!mGroundTech->Init()) {
+    //     cerr << "Error at Ground Technique Initialization." << endl;
+    // }
 
     mGroundTech->Enable();
     // mGroundTech->SetTextureUnit(0); // I may not even need this.
+    mGroundTech->SetMatSpecularIntensity(0.0f);
+    mGroundTech->SetShininess(0.0f);      
 
     mGroundMesh = shared_ptr<GroundMesh>(new GroundMesh(gridX, gridZ, maxHeight, minHeight));
     // mGroundMesh->RunFractalAlgorithm(1);
 }
 
 Ground::~Ground() {
+}
+
+bool Ground::RenderMesh() {
+    glDisable(GL_CULL_FACE);
+    mGroundMesh->Render(mGroundTech->GetProgram());
+    glEnable(GL_CULL_FACE);
+    return true;
 }
 
 bool Ground::Render() {
@@ -38,37 +47,40 @@ bool Ground::Render() {
     Pipeline pipeline;
     pipeline.SetPerspective(camera->GetPerspMatrix());
     pipeline.SetCamera(camera->GetPos(), camera->Forward(), camera->Up());
+
+    mGroundTech->SetColorTextureUnit(0);
+    // for (int i = 0; i < mPointLights.size(); ++i) {
+    //     cout << "Ambient: " << mPointLights.at(i)->mAmbientIntensity << endl;
+    //     cout << "Diffuse: " << mPointLights.at(i)->mDiffuseIntensity << endl;
+    // }
+    for (unsigned int i = 0; i < mSpotLights.size(); ++i) {
+        mSpotLights.at(i)->mPosition = camera->GetPos();
+        mSpotLights.at(i)->mDirection = camera->Forward();
+        // cout << "Ambient: " << mPointLights.at(i)->mAmbientIntensity << endl;
+        // cout << "Diffuse: " << mPointLights.at(i)->mDiffuseIntensity << endl;
+    }
+
+    mGroundTech->SetCameraPosition(camera->GetPos());
+    mGroundTech->SetPointLights(mPointLights.size(), mPointLights);
+    mGroundTech->SetSpotLights(mSpotLights.size(), mSpotLights);
     mGroundTech->SetPerspectiveMatrix(pipeline.GetPerspectiveCameraTrans());
-
-    // glm::mat4 cameraTrans = camera->GetGLMPerspMatrix();
-    // cameraTrans *= glm::translate(glm::mat4(), -camera->GetPos());
-    // cameraTrans *= camera->GetRotate();
-
-    // mGroundTech->SetPerspectiveMatrix(cameraTrans);
-
-
-    glm::mat4 temp =  pipeline.GetPerspectiveCameraTrans();
-    cout << "PerspectiveCameraTrans of Entity: " << mID << endl;
-    cout << "\t  { " << temp[0][0] << " ,\t" << temp[0][1] << " ,\t" << temp[0][2] << " ,\t" <<temp[0][3] << "}" << endl;
-    cout << "\t  { " << temp[1][0] << " ,\t" << temp[1][1] << " ,\t" << temp[1][2] << " ,\t" <<temp[1][3] << "}" << endl;
-    cout << "\t  { " << temp[2][0] << " ,\t" << temp[2][1] << " ,\t" << temp[2][2] << " ,\t" <<temp[2][3] << "}" << endl;
-    cout << "\t  { " << temp[3][0] << " ,\t" << temp[3][1] << " ,\t" << temp[3][2] << " ,\t" <<temp[3][3] << "}" << endl;
-
-    temp = glm::transpose(GetTransform());
-    cout << "GetTransform of Entity: " << mID << endl;
-    cout << "\t  { " << temp[0][0] << " ,\t" << temp[0][1] << " ,\t" << temp[0][2] << " ,\t" <<temp[0][3] << "}" << endl;
-    cout << "\t  { " << temp[1][0] << " ,\t" << temp[1][1] << " ,\t" << temp[1][2] << " ,\t" <<temp[1][3] << "}" << endl;
-    cout << "\t  { " << temp[2][0] << " ,\t" << temp[2][1] << " ,\t" << temp[2][2] << " ,\t" <<temp[2][3] << "}" << endl;
-    cout << "\t  { " << temp[3][0] << " ,\t" << temp[3][1] << " ,\t" << temp[3][2] << " ,\t" <<temp[3][3] << "}" << endl;
-
     mGroundTech->SetModelMatrix(glm::transpose(GetTransform()));
-    // mGroundTech->SetWVPMatrix(pipeline.GetWVPTrans(GetTransform()));
-
-    // mGroundTech->SetWVP(pipeline.GetWVPTrans(transform));
+    mGroundTech->SetRotMatrix(GetRotate());
 
     mGroundMesh->Render(mGroundTech->GetProgram());
 
     glEnable(GL_CULL_FACE);
 
+    cout << "Forward: " << camera->Forward().x << ", " << camera->Forward().y << ", " << camera->Forward().z << endl;
+
     return true;
 }
+
+void Ground::AttachSpotLights(std::vector<std::shared_ptr<SpotLight>>& spotLights) {
+    mSpotLights = spotLights;
+}
+
+void Ground::AttachPointLights(std::vector<std::shared_ptr<PointLight>>& pointLights) {
+    mPointLights = pointLights;
+}
+

@@ -6,7 +6,6 @@ layout (location = 2) in vec2 texcoord;
 
 uniform mat4 persp_matrix;
 uniform mat4 model_matrix;
-// uniform mat4 rot_matrix;
 // uniform mat4 wvp_matrix;
 
 out vec3 fragVert;
@@ -16,8 +15,8 @@ out vec2 fragCoord;
 void main() {
     gl_Position = persp_matrix * model_matrix * vec4(vert, 1.0f);
     // fragTextCoord = texcoord;
-    fragVert = vert; // (model_matrix * vec4(vert, 1.0f)).xyz;
-    fragNormal = normal; //(model_matrix * vec4(normal, 1.0f)).xyz;
+    fragVert = (model_matrix * vec4(vert, 1.0f)).xyz;
+    fragNormal = (model_matrix * vec4(normal, 1.0f)).xyz;
     fragCoord = texcoord;
 
     // gl_Position = model_matrix * vec4(vert, 1.0f);

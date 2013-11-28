@@ -32,6 +32,6 @@ void GroundTechnique::SetModelMatrix(const glm::mat4& model) {
     glUniformMatrix4fv(mModelLocation, 1, GL_TRUE, glm::value_ptr(model));
 }
 
-void GroundTechnique::SetWVPMatrix(const glm::mat4& mvp) {
-    glUniformMatrix4fv(mWVPLocation, 1, GL_TRUE, glm::value_ptr(mvp));
-}
+// void GroundTechnique::SetWVPMatrix(const glm::mat4& mvp) {
+//     glUniformMatrix4fv(mWVPLocation, 1, GL_TRUE, glm::value_ptr(mvp));
+// }

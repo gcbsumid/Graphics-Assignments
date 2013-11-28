@@ -19,6 +19,8 @@
 #include "Skybox.hpp"
 #include "Ground.hpp"
 
+#include "LightingTechnique.hpp"
+
 class GraphicsManager {
 public:
     GraphicsManager();
@@ -42,7 +44,15 @@ public:
     void AttachCamera(std::shared_ptr<Camera>);
     void AttachSkybox(std::shared_ptr<Skybox>);
     void AttachGround(std::shared_ptr<Ground>);
+    void AttachSpotLights(std::vector<std::shared_ptr<SpotLight>>& spotlight);
+    void AttachPointLights(std::vector<std::shared_ptr<PointLight>>& pointLight);
+
 private:
+    void RenderSceneIntoDepth();
+    void RenderShadowVolumeIntoStencil();
+    void RenderShadowedScene();
+    void RenderAmbientLight();
+
     // Pointers to other Managers;
     std::weak_ptr<InputManager> mInput;
     // std::weak_ptr<ResourceManager> mResource;
@@ -53,6 +63,11 @@ private:
     std::weak_ptr<Camera> mCamera;
     std::weak_ptr<Skybox> mSkybox;
     std::weak_ptr<Ground> mGround;
+
+    std::vector<std::shared_ptr<SpotLight>> mSpotLights;
+    std::vector<std::shared_ptr<PointLight>> mPointLights;
+
+    std::shared_ptr<LightingTechnique> mLightingTechnique;
 
     // Shared with the resource manager
     // std::shared_ptr<std::map<std::string, Texture*>> mTextures;

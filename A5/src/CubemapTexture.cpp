@@ -34,7 +34,7 @@ CubemapTexture::~CubemapTexture() {
 }
 
 bool CubemapTexture::Load() {
-    cout << "Cubemap Loading." << endl;
+    // cout << "Cubemap Loading." << endl;
     
     glGenTextures(1, &mTextureObj);
     glBindTexture(mTextureTarget, mTextureObj);

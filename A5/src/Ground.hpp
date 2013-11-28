@@ -6,7 +6,7 @@
 
 #include "Entity.hpp"
 #include "Mesh.hpp"
-#include "GroundTechnique.hpp"
+#include "LightingTechnique.hpp"
 #include "GroundMesh.hpp"
 #include "Camera.hpp"
 
@@ -30,11 +30,16 @@ public:
     virtual ~Ground();
 
     bool Render();
+    bool RenderMesh();
+    void AttachSpotLights(std::vector<std::shared_ptr<SpotLight>>& spotlight);
+    void AttachPointLights(std::vector<std::shared_ptr<PointLight>>& pointLight);
 
 private:
     const std::weak_ptr<Camera> mCamera;
-    std::shared_ptr<GroundTechnique> mGroundTech;
+    std::shared_ptr<LightingTechnique> mGroundTech;
     std::shared_ptr<GroundMesh> mGroundMesh;
+    std::vector<std::shared_ptr<SpotLight>>  mSpotLights;
+    std::vector<std::shared_ptr<PointLight>> mPointLights;
 };
 
 #endif

@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <GL/glfw.h>
+#include <cmath>
 
 #include "Engine.hpp"
 
@@ -208,8 +209,36 @@ void Engine::CreateObjects() {
 
     // mCamera->Translate(glm::vec3(0.0, 10.0, 0.0));
 
+    CreateLights();
     CreateSkybox();
 }
+
+void Engine::CreateLights() {
+    // Creating the Point Lights
+    shared_ptr<PointLight> p1(new PointLight());
+
+    p1->mColor = glm::vec3(1.0, 1.0, 1.0); // white
+    p1->mPosition = glm::vec3(0.0, -5.0, 0.0);
+    // p1->mAttenuation.mLinear = 0.1f;
+
+    mPointLights.push_back(p1);
+
+    // Creating the Flashlight
+    shared_ptr<SpotLight> s1(new SpotLight());
+    s1->mColor = glm::vec3(1.0, 1.0, 1.0);
+    s1->mPosition = mCamera->GetPos();
+    s1->mDirection = mCamera->Forward();
+    s1->mCutOff = cos(0.25 * M_PI);
+    s1->mDiffuseIntensity = 0.8f;
+    // s1->mAttenuation.mLinear = 0.2f;
+    // s1->mAmbientIntensity = 0.2f;
+    // std::cout << "Cutoff: " << s1->mCutOff <<endl;
+    mSpotLights.push_back(s1);
+
+    mGraphics->AttachSpotLights(mSpotLights);
+    mGraphics->AttachPointLights(mPointLights);    
+}
+
 
 void Engine::CreateSkybox() {
     // Create skybox and attach to the Graphics manager
@@ -236,6 +265,8 @@ void Engine::CreateSkybox() {
     mGround = shared_ptr<Ground>(new Ground(mCamera, 20, 20, 5, -5));
     // mGround->Translate(glm::vec3(-10,-10,-10));
     mGround->Translate(glm::vec3(0,-10,0));
-    mGround->Scale(glm::vec3(100.0, 1.0, 100.0));
+    mGround->Scale(glm::vec3(10.0, 1.0, 10.0));
+    mGround->AttachSpotLights(mSpotLights);
+    mGround->AttachPointLights(mPointLights);
     mGraphics->AttachGround(mGround);
 }
