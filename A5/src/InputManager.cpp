@@ -38,8 +38,8 @@ void InputManager::HandleKeyPress(double elapsedTime) {
     if (glfwGetKey('S')) {
         // std::cout << "Moving backwards!" << std::endl;
         // std::cout << "Pressing S! " << std::endl;
-        cout << "Forward: " << camera->Forward().x << ", " << camera->Forward().y << ", " << camera->Forward().z << endl;
-        glm::vec3 bck = -camera->Forward() * (float)elapsedTime;
+        glm::vec3 bck = -camera->Forward() * 0.05f;
+        cout << "Backward: " << bck.x << ", " << bck.y << ", " << bck.z << endl;
         bck = glm::vec3(bck[0], 0.0, bck[2]);
 
         camera->Translate(bck);
@@ -47,8 +47,9 @@ void InputManager::HandleKeyPress(double elapsedTime) {
     } else if (glfwGetKey('W')) {
         // std::cout << "Moving forward!" << std::endl;
         // std::cout << "Pressing W! " << std::endl;
-        glm::vec3 fwd = camera->Forward() * (float)elapsedTime;
+        glm::vec3 fwd = camera->Forward() * 0.05f;
         fwd = glm::vec3(fwd[0], 0.0, fwd[2]);
+        cout << "Forward: " << fwd.x << ", " << fwd.y << ", " << fwd.z << endl;
         camera->Translate(fwd);
         // cameraComp->MoveCamera(elapsedTime, cameraComp->Forward());
     }
@@ -56,17 +57,18 @@ void InputManager::HandleKeyPress(double elapsedTime) {
     if (glfwGetKey('A')){
         // std::cout << "Strafing left!" << std::endl;
         // std::cout << "Pressing A! " << std::endl;
-        cout << "Right: " << camera->Right().x << ", " << camera->Right().y << ", " << camera->Right().z << endl;
 
-        glm::vec3 left = camera->Right() * (float)elapsedTime;
+        glm::vec3 left = camera->Right() * 0.05f;
         left = glm::vec3(left[0], 0.0, left[2]);
+        cout << "left: " << left.x << ", " << left.y << ", " << left.z << endl;
         camera->Translate(left);
         // cameraComp->MoveCamera(elapsedTime, -cameraComp->Right());
     } else if (glfwGetKey('D')){
         // std::cout << "Strafing right!" << std::endl;
         // std::cout << "Pressing D! " << std::endl;
-        glm::vec3 right = -camera->Right() * (float)elapsedTime;
+        glm::vec3 right = -camera->Right() * 0.05f;
         right = glm::vec3(right[0], 0.0, right[2]);
+        cout << "Right: " << right.x << ", " << right.y << ", " << right.z << endl;
         camera->Translate(right);
         // cameraComp->MoveCamera(elapsedTime, cameraComp->Right());
     }
@@ -74,17 +76,18 @@ void InputManager::HandleKeyPress(double elapsedTime) {
     if (glfwGetKey('Z')){
         // std::cout << "Strafing left!" << std::endl;
         // std::cout << "Pressing A! " << std::endl;
-        cout << "Up: " << camera->Up().x << ", " << camera->Up().y << ", " << camera->Up().z << endl;
 
-        glm::vec3 up = camera->Up() * (float)elapsedTime;
+        glm::vec3 up = camera->Up() * 0.05f;
         up = glm::vec3(0.0, up[1], 0.0);
+        cout << "Up: " << up.x << ", " << up.y << ", " << up.z << endl;
         camera->Translate(up);
         // cameraComp->MoveCamera(elapsedTime, -cameraComp->Right());
     } else if (glfwGetKey('X')){
         // std::cout << "Strafing right!" << std::endl;
         // std::cout << "Pressing D! " << std::endl;
-        glm::vec3 down = -camera->Up() * (float)elapsedTime;
+        glm::vec3 down = -camera->Up() * 0.05f;
         down = glm::vec3(0.0, down[1], 0.0);
+        cout << "Down: " << down.x << ", " << down.y << ", " << down.z << endl;
         camera->Translate(down);
         // cameraComp->MoveCamera(elapsedTime, cameraComp->Right());
     }

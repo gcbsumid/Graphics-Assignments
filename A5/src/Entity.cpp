@@ -42,8 +42,8 @@ int Entity::GetID() const {
 
 glm::mat4 Entity::GetTransform() {
     mTransform = glm::scale(glm::mat4(), mScale);
-    mTransform *= glm::translate(glm::mat4(), mPosition);
-    mTransform *= mRotate;
+    mTransform = mTransform * mRotate;
+    mTransform = glm::translate(glm::mat4(), mPosition) * mTransform;
     // mTransform = 
     // mScale * mRotate * 
     return mTransform;

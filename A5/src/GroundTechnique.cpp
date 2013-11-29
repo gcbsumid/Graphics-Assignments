@@ -29,7 +29,7 @@ void GroundTechnique::SetPerspectiveMatrix(const glm::mat4& persp) {
 }
 
 void GroundTechnique::SetModelMatrix(const glm::mat4& model) {
-    glUniformMatrix4fv(mModelLocation, 1, GL_TRUE, glm::value_ptr(model));
+    glUniformMatrix4fv(mModelLocation, 1, GL_FALSE, glm::value_ptr(model));
 }
 
 // void GroundTechnique::SetWVPMatrix(const glm::mat4& mvp) {

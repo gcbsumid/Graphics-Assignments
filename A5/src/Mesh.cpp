@@ -92,6 +92,7 @@ Mesh::~Mesh() {
 }
 
 void Mesh::Clear() {
+
     if (mBuffers[0] != INVALID_OGL_VALUE) {
         glDeleteBuffers(6, mBuffers);
     }
@@ -102,6 +103,7 @@ void Mesh::Clear() {
     for (unsigned int i = 0; i < mTextures.size(); ++i) {
         delete mTextures.at(i);
     }
+
 }
 
 bool Mesh::LoadMesh(const string& filename) {
@@ -155,6 +157,7 @@ bool Mesh::InitFromScene(const aiScene* scene, const string& filename) {
     if (!InitMaterials(scene, filename)) {
         return false;
     }
+    // cerr << "I'm returning false here!" << endl;
 
     return InitOpenGLData(indices, positions, normals, texcoords);
 }
@@ -196,6 +199,7 @@ bool Mesh::InitOpenGLData(std::vector<unsigned int>& indices,
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)* texcoords.size(), &texcoords[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(TEXCOORD_LOCATION);
     glVertexAttribPointer(TEXCOORD_LOCATION, 2, GL_FLOAT, GL_FALSE, 0, 0);    
+
 
     return (glGetError() == GL_NO_ERROR);
 
@@ -330,7 +334,7 @@ void Mesh::Render(std::shared_ptr<Program>& shader)
         }
 
         if (mEntries.at(i).mColor != glm::vec3()) {
-            glUniform3f(shader->Uniform("color"), mEntries.at(i).mColor.x,
+            glUniform3f(shader->Uniform("mat_color"), mEntries.at(i).mColor.x,
                 mEntries.at(i).mColor.y, mEntries.at(i).mColor.z);
         } 
 
@@ -342,7 +346,7 @@ void Mesh::Render(std::shared_ptr<Program>& shader)
                                           mEntries.at(i).mBaseVertex);
 
         if (mEntries.at(i).mColor != glm::vec3()) {
-            glUniform3f(shader->Uniform("color"), 0.0f, 0.0f, 0.0f);
+            glUniform3f(shader->Uniform("mat_color"), -1.0f, -1.0f, -1.0f);
         }
     }
 

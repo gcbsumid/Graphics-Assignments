@@ -1,4 +1,5 @@
 #include <string>
+#include <iostream>
 #include <stdexcept>
 #include <sstream>
 
@@ -23,9 +24,8 @@ LightingTechnique::LightingTechnique(const std::string& vertex_shader, const std
     if (vertex_shader != "./ground.vert") {
         // Screw it. I'll just leave it like this.
         mColorTextureUnitLocation = mProgram->Uniform("color_map");
-    } else {
-        mRotMatrixLocation = mProgram->Uniform("rotation_matrix");
-    }
+    } 
+    mRotMatrixLocation = mProgram->Uniform("rotation_matrix");
     mCameraPositionLocation = mProgram->Uniform("camera_position");
     mMatSpecularIntensityLocation = mProgram->Uniform("mat_specular_intensity");
     mMatShininessLocation = mProgram->Uniform("shininess");
@@ -162,5 +162,6 @@ void LightingTechnique::SetModelMatrix(const glm::mat4& model) {
 }
 
 void LightingTechnique::SetRotMatrix(const glm::mat4& rot) {
+    cout << "mRotMatrixLocation: " << mRotMatrixLocation << endl;
     glUniformMatrix4fv(mRotMatrixLocation, 1, GL_TRUE, glm::value_ptr(rot));
 }

@@ -92,7 +92,7 @@ void GraphicsManager::RenderShadowedScene() {
     auto camera = mCamera.lock();
 
     for (unsigned int i = 0; i < mPointLights.size(); ++i) {
-        mPointLights.at(i)->mAmbientIntensity = 0.2f;
+        mPointLights.at(i)->mAmbientIntensity = 0.0f;
         mPointLights.at(i)->mDiffuseIntensity = 0.8f;
     }
     for (unsigned int i = 0; i < mSpotLights.size(); ++i) {
@@ -105,15 +105,22 @@ void GraphicsManager::RenderShadowedScene() {
     p.SetCamera(camera->GetPos(), camera->Forward(), camera->Up());
 
     mLightingTechnique->Enable();
-    mLightingTechnique->SetCameraPosition(camera->GetPos());
+    mLightingTechnique->SetCameraPosition(camera->GetPos() - (-2.0f * camera->Forward()));
     mLightingTechnique->SetColorTextureUnit(0);
-    mLightingTechnique->SetPointLights(mPointLights.size(), mPointLights);
+    // mLightingTechnique->SetPointLights(mPointLights.size(), mPointLights);
     mLightingTechnique->SetSpotLights(mSpotLights.size(), mSpotLights);
     mLightingTechnique->SetPerspectiveMatrix(p.GetPerspectiveCameraTrans());
 
+    // mLightingTechnique->SetMatSpecularIntensity(0.5);
+    // mLightingTechnique->SetShininess(0.5);
     for (auto& ent : mGameObjects) {
         mLightingTechnique->SetModelMatrix(glm::transpose(ent->GetTransform()));
-        mLightingTechnique->SetRotMatrix(ent->GetRotate());
+        // mLightingTechnique->SetRotMatrix(glm::transpose(ent->GetTransform()));
+        glm::mat4 rotate = ent->GetScale() * ent->GetRotate();
+
+        mLightingTechnique->SetRotMatrix(glm::transpose(rotate));
+
+        // mLightingTechnique->SetRotMatrix(glm::transpose(ent->GetRotate() * ent->GetScale()));
         ent->Render(mLightingTechnique->GetProgram());
     }
 

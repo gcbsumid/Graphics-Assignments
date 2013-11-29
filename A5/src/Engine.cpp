@@ -142,9 +142,9 @@ void Engine::CreateObjects() {
 
     // mCamera->Translate(glm::vec3(0.0, 10.0, 0.0));
 
+    CreateSlenderman();
     CreateLights();
     CreateSkybox();
-    CreateSlenderman();
 
     // Adding all the entities
     for (auto& ent : mEntities) {
@@ -213,7 +213,7 @@ void Engine::CreateSkybox() {
 void Engine::CreateSlenderman() {
     Entity* slender = new Entity();
     if (!slender->AddMesh("resources/slenderman2.3ds")) {
-        cout << "Error loading: slenderman2.3ds" << endl;
+        cerr << "Error loading: slenderman2.3ds" << endl;
     }
     slender->Scale(glm::vec3(0.5, 0.5, 0.5));
     slender->Translate(glm::vec3(0, 0, -10));
@@ -225,9 +225,9 @@ void Engine::CreateSlenderman() {
     slender->AttachColor(glm::vec3(0.8,0.8,0.8), 3);
     slender->AttachColor(glm::vec3(1.0,0,0), 4);
     slender->AttachColor(glm::vec3(1.0,1.0,1.0), 5);
-    slender->AttachColor(glm::vec3(0,0,0), 6);
+    slender->AttachColor(glm::vec3(0.05,0.05,0.05), 6);
     slender->AttachColor(glm::vec3(0.8,0.8,0.8), 7);
-    slender->AttachColor(glm::vec3(0,0,0), 8);
+    slender->AttachColor(glm::vec3(0.05,0.05,0.05), 8);
 
     mEntities.push_back(shared_ptr<Entity>(slender));
 }

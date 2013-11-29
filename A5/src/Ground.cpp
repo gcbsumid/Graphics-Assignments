@@ -71,7 +71,6 @@ bool Ground::Render() {
     mGroundTech->SetPerspectiveMatrix(pipeline.GetPerspectiveCameraTrans());
     mGroundTech->SetModelMatrix(glm::transpose(GetTransform()));
     mGroundTech->SetRotMatrix(GetRotate());
-
     mGroundMesh->Render(mGroundTech->GetProgram());
 
     glEnable(GL_CULL_FACE);

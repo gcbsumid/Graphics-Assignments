@@ -71,7 +71,7 @@ vec4 CalcLightInternal(BaseLight Light, vec3 LightDirection, vec3 Point, vec3 No
         if (specular_factor > 0) {
             specular_color = vec4(Light.Color, 1.0f) * mat_specular_intensity * specular_factor;
         }
-        // diffuse_color = vec4(-LightDirection, 1.0);
+        // diffuse_color = -rotation_matrix[2];
     } else {
         // diffuse_color = vec4(temp, 1.0);
     }
