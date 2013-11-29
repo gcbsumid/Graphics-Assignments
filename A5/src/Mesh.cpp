@@ -109,6 +109,7 @@ bool Mesh::LoadMesh(const string& filename) {
     Clear();
 
     Assimp::Importer importer;
+    std::cout << "Loading: " << filename << endl;
 
     const aiScene* scene = importer.ReadFile(filename.c_str(), 
         aiProcess_Triangulate |
@@ -132,11 +133,15 @@ bool Mesh::InitFromScene(const aiScene* scene, const string& filename) {
     vector<glm::vec3> normals;
     vector<glm::vec2> texcoords;
 
+    cout << "number of meshes: " << scene->mNumMeshes << endl;
+
     // Initialize the meshes in the scene one by one
     unsigned int totalNumOfVertices = 0;
     unsigned int totalNumOfIndices = 0;
     for (unsigned int i = 0; i < mEntries.size(); ++i) {
         const aiMesh* mesh = scene->mMeshes[i];
+        cout << "Name of Mesh: " << mesh->mName.C_Str() << endl;
+        cout << "Number of Vertices: " << mesh->mNumVertices << endl;
         InitMesh(i, mesh, positions, normals, texcoords, indices);
         mEntries.at(i).mBaseVertex = totalNumOfVertices;
         mEntries.at(i).mBaseIndex = totalNumOfIndices;
@@ -226,11 +231,16 @@ void Mesh::InitMesh(unsigned int index,
         position.push_back(v->mPosition);
         normal.push_back(v->mAvgNormal);
         texcoord.push_back(v->mTexCoord);
+
+        cout << "Vertex Normal: " << v_normal->x << ", " << v_normal->y  << ", " << v_normal->z << endl;
     }
+
+    // cout << "Next Mesh: " << endl << endl;
 
     // Set mFaces and mEdges for the mesh
     for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
         const aiFace& face = mesh->mFaces[i];
+        // cout << face.mNumIndices << endl;
         assert(face.mNumIndices == 3); // After being triangulated
 
         vector<WE_Vertex*> face_vertices;
@@ -268,6 +278,8 @@ bool Mesh::InitMaterials(const aiScene* scene, const string& filename)
     bool Ret = true;
 
     // Initialize the materials
+    cout << "number of materials: " << scene->mNumMaterials << endl;
+
     for (unsigned int i = 0 ; i < scene->mNumMaterials ; i++) {
         const aiMaterial* material = scene->mMaterials[i];
 
@@ -289,32 +301,38 @@ bool Mesh::InitMaterials(const aiScene* scene, const string& filename)
                 else {
                     printf("Loaded texture '%s'\n", fullPath.c_str());
                 }
+            } else {
+                cout << "No Texture!" << endl;
             }
+        } else { 
+            cout << "No Texture at all!" << endl;
         }
     }
 
     return Ret;
 }
 
-void Mesh::Render(std::shared_ptr<Program> shader)
+void Mesh::AttachColor(glm::vec3 color, unsigned int meshID) {
+    mEntries.at(meshID).mColor = color;
+}
+
+void Mesh::Render(std::shared_ptr<Program>& shader)
 {
     // TODO: Fix Render
     assert(shader->IsInUse());
-    // cout << "mEntries = " << mEntries.size() << endl;
-
     
     glBindVertexArray(mVertexArray);
     for (unsigned int i = 0 ; i < mEntries.size() ; i++) {
-        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEntries[i].mBuffers[INDEX_BUFFER]);
-        // cout << "Index buffer: " << mEntries[i].mIndexBuffer << std::endl;
-        // cout << "Vertex buffer: " << mEntries[i].mVertexBuffer << std::endl;
-        // cout << "Num of Indicies: " << mEntries[i].mNumIndices << std::endl;
         const unsigned int materialIndex = mEntries[i].mMaterialIndex;
 
         if (materialIndex < mTextures.size() && mTextures[materialIndex]) {
-            // cout << "I'm binding a texture in Mesh::Render() " << endl;
             mTextures[materialIndex]->Bind(shader);
         }
+
+        if (mEntries.at(i).mColor != glm::vec3()) {
+            glUniform3f(shader->Uniform("color"), mEntries.at(i).mColor.x,
+                mEntries.at(i).mColor.y, mEntries.at(i).mColor.z);
+        } 
 
         glDrawElementsInstancedBaseVertex(GL_TRIANGLES,
                                           mEntries.at(i).mNumIndices,
@@ -323,7 +341,9 @@ void Mesh::Render(std::shared_ptr<Program> shader)
                                           1, // TODO: account for multiple instances
                                           mEntries.at(i).mBaseVertex);
 
-        // glDrawElements(GL_TRIANGLES, mEntries[i].mNumIndices, GL_UNSIGNED_INT, NULL);
+        if (mEntries.at(i).mColor != glm::vec3()) {
+            glUniform3f(shader->Uniform("color"), 0.0f, 0.0f, 0.0f);
+        }
     }
 
     glBindVertexArray(0);
@@ -370,22 +390,56 @@ void Mesh::Subdivide(int numOfIteration) {
     // Todo:
     //      - subdivde X times
     //      - Re-initialize the OpenGL data
+    numOfIteration -= 1;
+
+    vector<glm::vec3> positions;
+    vector<glm::vec3> normals;
+    vector<glm::vec2> texcoords;
+    vector<unsigned int> indices;
+    unsigned int totalNumOfVertices = 0;
+    unsigned int prevTotalNumOfIndices = 0;
 
     for (unsigned int i = 0; i < mEntries.size(); ++i) {
-        SubdivideMeshEntry(numOfIteration, i);
-        // TODO: I still have to mess around with mBaseIndex and mBaseVertex
-        // TODO: move vertex opengl data out to here
+        SubdivideMeshEntry(mEntries.at(i).mEdges, mEntries.at(i).mFaces, mEntries.at(i).mVertices, indices);
+
+        // Adding the positions, normals, and texcoords 
+        // Setting stuff for the opengl data
+        if (numOfIteration == 0) {
+            for (auto& vert : mEntries.at(i).mVertices) {
+                GetVertexNormal(vert, normals);
+                positions.push_back(vert->mPosition);
+                texcoords.push_back(vert->mTexCoord);
+            }
+
+            mEntries.at(i).mBaseVertex = totalNumOfVertices;
+            mEntries.at(i).mBaseIndex = indices.size();
+            mEntries.at(i).mNumIndices = indices.size() - prevTotalNumOfIndices;
+
+            totalNumOfVertices += mEntries.at(i).mVertices.size();
+            prevTotalNumOfIndices = indices.size();
+        } else {
+            indices.clear(); // We don't want to keep the indices if we're not going to display it to opengl
+        }
     }
 
+    if (numOfIteration == 0) {
+        // Initializing OpenGL
+        InitOpenGLData(indices, positions, normals, texcoords);
+    } else {
+        // re-iterate
+        Subdivide(numOfIteration);
+    }
 }
 
-void Mesh::SubdivideMeshEntry(int numOfIteration, int index) {
-    MeshEntry* mesh = &mEntries[index];
-    unsigned int total_vertices_size = mesh->mVertices.size();
-    vector<WE_Vertex*> new_vertices;
+void Mesh::SubdivideMeshEntry(vector<WE_Edge*>& edge_list,
+                              vector<WE_Face*>& face_list,
+                              vector<WE_Vertex*>& vertex_list,
+                              vector<unsigned int>& indices) {
+    unsigned int total_vertices_size = vertex_list.size();
+    unsigned int original_size = total_vertices_size;
 
     // calculate face points
-    for (auto& face : mesh->mFaces) {
+    for (auto& face : face_list) {
         vector<WE_Vertex*> vertices;
         face->GetVertices(vertices);
 
@@ -395,17 +449,17 @@ void Mesh::SubdivideMeshEntry(int numOfIteration, int index) {
         }
         WE_Vertex* face_point = new WE_Vertex();
         face_point->mIndex = total_vertices_size++;
-        mesh->mVertices.push_back(face_point);
+        vertex_list.push_back(face_point);
 
         face_point->mPosition = avg_pos / 3.0f;
         face->mFaceVertex = face_point;
     }
 
     // calculate edge points
-    for (auto& edge : mesh->mEdges) {
+    for (auto& edge : edge_list) {
         WE_Vertex* edge_point = new WE_Vertex();
         edge_point->mIndex = total_vertices_size++;
-        mesh->mVertices.push_back(edge_point);
+        vertex_list.push_back(edge_point);
         edge_point->mPosition = (edge->mVert1->mPosition + edge->mVert2->mPosition) * 0.5f;
 
         // if not a border edge
@@ -419,7 +473,9 @@ void Mesh::SubdivideMeshEntry(int numOfIteration, int index) {
     }
 
     // calculate vertex updates
-    for (auto& vertex : mesh->mVertices) {
+    for (unsigned int i = 0; i < original_size; ++i) {
+    // for (auto& vertex : vertex_list) {
+        WE_Vertex* vertex = vertex_list.at(i);
         glm::vec3 old_coords = vertex->mPosition;
 
         if (vertex->IsOnBorder()) {
@@ -470,18 +526,26 @@ void Mesh::SubdivideMeshEntry(int numOfIteration, int index) {
         }
     }
 
+    // delete all the current mEdges attached to all vertices
+    for (unsigned int i = 0; i < original_size; ++i) {
+        WE_Vertex* vertex = vertex_list.at(i);
+
+        vertex->mEdges.clear();
+    }
+
+    // cout << "vertex_list size: " << vertex_list.size() << endl;
+
     vector<WE_Edge*> new_edges;
     vector<WE_Face*> new_faces;
-    vector<unsigned int> indices;
     // Now I have all the points that I need. I should do something with it.
-    for (auto& face : mesh->mFaces) {
+    for (auto& face : face_list) {
         for (auto& edge : face->mEdges) {
 
             vector<WE_Vertex*> face_vertices;
             if (edge->mFaceA == face) {
-                face_vertices.push_back(edge->mVert1);
-                face_vertices.push_back(face->mFaceVertex);
                 face_vertices.push_back(edge->mMidPointVertex);
+                face_vertices.push_back(face->mFaceVertex);
+                face_vertices.push_back(edge->mVert1);
                 
                 CreateFace(new_edges,
                            new_faces,
@@ -489,18 +553,19 @@ void Mesh::SubdivideMeshEntry(int numOfIteration, int index) {
                            indices);
 
                 face_vertices.clear();
-                face_vertices.push_back(edge->mMidPointVertex);
-                face_vertices.push_back(face->mFaceVertex);
+
                 face_vertices.push_back(edge->mVert2);
+                face_vertices.push_back(face->mFaceVertex);
+                face_vertices.push_back(edge->mMidPointVertex);
 
                 CreateFace(new_edges,
                            new_faces,
                            face_vertices,
                            indices);
             } else if (edge->mFaceB == face) {
-                face_vertices.push_back(edge->mVert1);
-                face_vertices.push_back(edge->mMidPointVertex);
                 face_vertices.push_back(face->mFaceVertex);
+                face_vertices.push_back(edge->mMidPointVertex);
+                face_vertices.push_back(edge->mVert1);
 
                 CreateFace(new_edges,
                            new_faces,
@@ -508,9 +573,10 @@ void Mesh::SubdivideMeshEntry(int numOfIteration, int index) {
                            indices);
 
                 face_vertices.clear();
-                face_vertices.push_back(face->mFaceVertex);
-                face_vertices.push_back(edge->mMidPointVertex);
+
                 face_vertices.push_back(edge->mVert2);
+                face_vertices.push_back(edge->mMidPointVertex);
+                face_vertices.push_back(face->mFaceVertex);
 
                 CreateFace(new_edges,
                            new_faces,
@@ -521,34 +587,20 @@ void Mesh::SubdivideMeshEntry(int numOfIteration, int index) {
             }
         }
     }
+    // cerr << "I exit after here!" << endl;
 
     // removing the old faces and edges
-    for (auto& face : mesh->mFaces) {
+    for (auto& face : face_list) {
         delete face;
     }
 
-    for (auto& edge : mesh->mEdges) {
+    for (auto& edge : edge_list) {
         delete edge;
     }
 
     // saving the new data to the mesh
-    mesh->mFaces = new_faces;
-    mesh->mEdges = new_edges;
-
-    // Setting stuff for the opengl data
-    vector<glm::vec3> normals;
-    vector<glm::vec3> positions;
-    vector<glm::vec2> texcoords;
-    for (auto& vert : mesh->mVertices) {
-        GetVertexNormal(vert, normals);
-        positions.push_back(vert->mPosition);
-        texcoords.push_back(vert->mTexCoord);
-    }
-    mesh->mNumIndices = indices.size();
-    cout << "numIndices: " << mesh->mNumIndices << endl;
-
-    // Initializing OpenGL
-    InitOpenGLData(indices, positions, normals, texcoords);
+    face_list = new_faces;
+    edge_list = new_edges;
 }
 
 void Mesh::CreateFace(vector<WE_Edge*>& edges_list, 
@@ -563,7 +615,6 @@ void Mesh::CreateFace(vector<WE_Edge*>& edges_list,
     for (unsigned int j = 0; j < 3; ++j) {
         WE_Vertex* vert1 = face_vertices.at(j);
         WE_Vertex* vert2 = face_vertices.at((j+1)%3);
-
         // pushing vertex 1 onto the indices ~ this will always be true
         indices.push_back(vert1->mIndex);
 
@@ -587,10 +638,10 @@ void Mesh::CreateFace(vector<WE_Edge*>& edges_list,
 
             if (prev) {
                 // Set the next and prev if it's not the first edge
-                if (prev->mNextA) {
-                    prev->mNextB = edge;
-                } else {
+                if (prev->mFaceA == face) {
                     prev->mNextA = edge;
+                } else {
+                    prev->mNextB = edge;
                 }
                 edge->mPrevB = prev;
             } 
@@ -609,10 +660,10 @@ void Mesh::CreateFace(vector<WE_Edge*>& edges_list,
 
             if (prev) {
                 // Set the next and prev if it's not the first edge
-                if (prev->mNextA) {
-                    prev->mNextB = edge;                        
+                if (prev->mFaceA == face) {
+                    prev->mNextA = edge;                        
                 } else {
-                    prev->mNextA = edge;
+                    prev->mNextB = edge;
                 }
                 edge->mPrevA = prev;
             }
@@ -641,9 +692,15 @@ void Mesh::CreateFace(vector<WE_Edge*>& edges_list,
         face->mEdges.at(2)->mNextB = face->mEdges.at(0);
     }
 
+    // cout << "mEdges size: " << face->mEdges.size() << endl;
+
     glm::vec3 firstEdgeVector = face_vertices.at(1)->mPosition - face_vertices.at(0)->mPosition; 
     glm::vec3 lastEdgeVector = face_vertices.at(2)->mPosition - face_vertices.at(0)->mPosition;
+    // cout << "firstEdgeVector: " << firstEdgeVector.x << ", " << firstEdgeVector.y << ", " << firstEdgeVector.z << endl;
+    // cout << "lastEdgeVector: " << lastEdgeVector.x << ", " << lastEdgeVector.y << ", " << lastEdgeVector.z << endl;
     face->mFaceNormal = glm::cross(firstEdgeVector, lastEdgeVector);
+    // glm::vec3 temp = glm::normalize(face->mFaceNormal);
+    // cout << "Normal: " << temp.x << ", " << temp.y << ", " << temp.z << endl;
 }
 
 void Mesh::GetVertexNormal(WE_Vertex* vert, vector<glm::vec3>& normals) {
@@ -651,8 +708,11 @@ void Mesh::GetVertexNormal(WE_Vertex* vert, vector<glm::vec3>& normals) {
     vert->GetFaces(facesAttachedToVertex);
 
     glm::vec3 norm;
+    // cout << "Index: " << vert->mIndex << endl;
+    // cout << "Faces attached size: " << facesAttachedToVertex.size() << endl;
     for (auto& face : facesAttachedToVertex) {
         vector<WE_Edge*> edges;
+        // cout << "Faces: " << face->mEdges.size() << endl;
         for(auto& edge : face->mEdges) {
             if(edge->mVert1 == vert || edge->mVert2 == vert) {
                 edges.push_back(edge);
@@ -685,8 +745,17 @@ void Mesh::GetVertexNormal(WE_Vertex* vert, vector<glm::vec3>& normals) {
 
         float vertexAngle = acos(glm::dot(edge1, edge2));
 
+        // cout << "face normal: " << face->mFaceNormal.x << ", " << face->mFaceNormal.y << ", " << 
+        //     face->mFaceNormal.z  << " and " << vertexAngle << endl;
+        // cout << vert->mIndex << " face->mFaceNormal: " << (face->mFaceNormal * vertexAngle).x << ", " << (face->mFaceNormal * vertexAngle).y << ", " << (face->mFaceNormal * vertexAngle).z << endl;
         norm += (face->mFaceNormal * vertexAngle);
     }
+    // cout << vert->mIndex << " pre-normal: " << norm.x << ", " << norm.y << ", " << norm.z << endl;
+
     vert->mAvgNormal = glm::normalize(norm);
+    // cout << vert->mIndex << " Position: " << vert->mPosition.x << ", " << vert->mPosition.y << ", " << 
+    //     vert->mPosition.z << endl;
+    // cout << vert->mIndex << " normal: " << vert->mAvgNormal.x << ", " << vert->mAvgNormal.y << ", " << 
+    //     vert->mAvgNormal.z << endl;
     normals.push_back(vert->mAvgNormal);
 }

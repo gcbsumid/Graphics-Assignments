@@ -24,6 +24,9 @@ Ground::Ground(const std::shared_ptr<Camera> camera,
     mGroundTech->SetShininess(0.0f);      
 
     mGroundMesh = shared_ptr<GroundMesh>(new GroundMesh(gridX, gridZ, maxHeight, minHeight));
+
+    mGroundMesh->Subdivide(1);
+
     // mGroundMesh->RunFractalAlgorithm(1);
 }
 
@@ -53,12 +56,14 @@ bool Ground::Render() {
     //     cout << "Ambient: " << mPointLights.at(i)->mAmbientIntensity << endl;
     //     cout << "Diffuse: " << mPointLights.at(i)->mDiffuseIntensity << endl;
     // }
-    for (unsigned int i = 0; i < mSpotLights.size(); ++i) {
-        mSpotLights.at(i)->mPosition = camera->GetPos();
-        mSpotLights.at(i)->mDirection = camera->Forward();
-        // cout << "Ambient: " << mPointLights.at(i)->mAmbientIntensity << endl;
-        // cout << "Diffuse: " << mPointLights.at(i)->mDiffuseIntensity << endl;
-    }
+
+    // It is now done in the graphics manager
+    // for (unsigned int i = 0; i < mSpotLights.size(); ++i) {
+    //     mSpotLights.at(i)->mPosition = camera->GetPos();
+    //     mSpotLights.at(i)->mDirection = camera->Forward();
+    //     // cout << "Ambient: " << mPointLights.at(i)->mAmbientIntensity << endl;
+    //     // cout << "Diffuse: " << mPointLights.at(i)->mDiffuseIntensity << endl;
+    // }
 
     mGroundTech->SetCameraPosition(camera->GetPos());
     mGroundTech->SetPointLights(mPointLights.size(), mPointLights);
@@ -71,7 +76,7 @@ bool Ground::Render() {
 
     glEnable(GL_CULL_FACE);
 
-    cout << "Forward: " << camera->Forward().x << ", " << camera->Forward().y << ", " << camera->Forward().z << endl;
+    // cout << "Forward: " << camera->Forward().x << ", " << camera->Forward().y << ", " << camera->Forward().z << endl;
 
     return true;
 }

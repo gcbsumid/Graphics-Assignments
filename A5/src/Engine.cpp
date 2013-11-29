@@ -45,45 +45,6 @@ Engine::Engine() {
     glfwDisable(GLFW_MOUSE_CURSOR);
     glfwSetMousePos(0,0);
 
-    // if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0 ) {
-    //     SDL_Quit();
-    //     throw runtime_error("Could not initialize SDL\n\n");
-    // }
-
-
-    // SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    // SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-
-    // // Turn on double buffering with 24 bit Z buffer
-    // SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    // SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-    // mMainWindow = SDL_CreateWindow("Slender Boy", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-    //     512, 512, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-    // if (!mMainWindow) {
-    //     SDL_Quit();
-    //     throw runtime_error("Unable to Create window.");
-    // } 
- 
-    // /* Create our opengl context and attach it to our window */
-    // mMainContext = SDL_GL_CreateContext(mMainWindow);
-
-    // /* This makes our buffer swap syncronized with the monitor's vertical refresh */
-    // SDL_GL_SetSwapInterval(1);
-
-    // GLenum err = glewInit();
-    // if (err != GLEW_OK) {
-    //     cerr << "Init glew error." << endl;        
-    //     SDL_Quit();
-    // }
-
-    // if (glewIsSupported("GL_VERSION_3_2"))
-    //     printf("Ready for OpenGL 3.3\n");
-    // else {
-    //     printf("OpenGL 3.2 not supported\n");
-    //     SDL_Quit();
-    // }
-
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glFrontFace(GL_CW);
     glCullFace(GL_BACK);
@@ -142,34 +103,6 @@ void Engine::Run() {
         mInput->HandleKeyPress(tick);
         mInput->HandleMouseMotion(tick);
         mInput->HandleMouseButton(tick);
-        // SDL_Event event;
-        // if (SDL_PollEvent(&event)) {
-        //     switch (event.type) {
-        //         case  SDL_KEYDOWN:
-        //             mInput->HandleKeyPress(event.key);
-        //             break;
-        //         case SDL_MOUSEMOTION:
-        //             SDL_PeepEvents(&event, 9, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEMOTION);
-        //             mInput->HandleMouseMotion(event.motion);
-        //             break;
-        //         case SDL_MOUSEBUTTONDOWN:
-        //         case SDL_MOUSEBUTTONUP:
-        //             mInput->HandleMouseButton(event.button);
-        //             break;
-        //         case SDL_QUIT:
-        //             done = true;
-        //             break;
-        //         default:
-        //             break;
-        //     }
-
-            
-        //     const Uint8* keys = SDL_GetKeyboardState(NULL);
-        //     if (keys[SDL_SCANCODE_ESCAPE]) {
-        //         break;
-        //     }
-        // }
-        // lastFrame = currentFrame;
 
         try {
             mGraphics->Render();
@@ -211,6 +144,12 @@ void Engine::CreateObjects() {
 
     CreateLights();
     CreateSkybox();
+    CreateSlenderman();
+
+    // Adding all the entities
+    for (auto& ent : mEntities) {
+        mGraphics->AttachGameObject(ent);
+    }
 }
 
 void Engine::CreateLights() {
@@ -219,7 +158,7 @@ void Engine::CreateLights() {
 
     p1->mColor = glm::vec3(1.0, 1.0, 1.0); // white
     p1->mPosition = glm::vec3(0.0, -5.0, 0.0);
-    // p1->mAttenuation.mLinear = 0.1f;
+    p1->mAttenuation.mLinear = 0.3f;
 
     mPointLights.push_back(p1);
 
@@ -269,4 +208,26 @@ void Engine::CreateSkybox() {
     mGround->AttachSpotLights(mSpotLights);
     mGround->AttachPointLights(mPointLights);
     mGraphics->AttachGround(mGround);
+}
+
+void Engine::CreateSlenderman() {
+    Entity* slender = new Entity();
+    if (!slender->AddMesh("resources/slenderman2.3ds")) {
+        cout << "Error loading: slenderman2.3ds" << endl;
+    }
+    slender->Scale(glm::vec3(0.5, 0.5, 0.5));
+    slender->Translate(glm::vec3(0, 0, -10));
+    slender->Rotate(glm::vec3(1,0,0), -90);
+
+    slender->AttachColor(glm::vec3(0.8,0.8,0.8), 0);
+    slender->AttachColor(glm::vec3(0.8,0.8,0.8), 1);
+    slender->AttachColor(glm::vec3(0.8,0.8,0.8), 2);
+    slender->AttachColor(glm::vec3(0.8,0.8,0.8), 3);
+    slender->AttachColor(glm::vec3(1.0,0,0), 4);
+    slender->AttachColor(glm::vec3(1.0,1.0,1.0), 5);
+    slender->AttachColor(glm::vec3(0,0,0), 6);
+    slender->AttachColor(glm::vec3(0.8,0.8,0.8), 7);
+    slender->AttachColor(glm::vec3(0,0,0), 8);
+
+    mEntities.push_back(shared_ptr<Entity>(slender));
 }

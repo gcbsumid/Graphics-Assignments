@@ -21,8 +21,6 @@
 #include "Ground.hpp"
 #include "LightingTechnique.hpp"
 
-typedef std::map<std::string, std::shared_ptr<Entity>> ENTITY_LIST;
-
 // TODO: SoundManager.hpp/cpp
 // TODO: PhysicsManager.hpp/cpp
 
@@ -48,6 +46,7 @@ private:
 
     void CreateSkybox(); 
     void CreateLights();
+    void CreateSlenderman();
     // void CreateScene();
     // void CreatePlayer();
 
@@ -58,7 +57,7 @@ private:
     // std::unique_ptr<SoundManager> mSound;
     // std::unique_ptr<PhysicsManager> mPhysics;
 
-    ENTITY_LIST mEntities;
+    std::vector<std::shared_ptr<Entity>> mEntities;
 
     std::shared_ptr<Camera> mCamera;
     std::shared_ptr<Skybox> mSkybox;

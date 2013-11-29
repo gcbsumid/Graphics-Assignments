@@ -46,6 +46,7 @@ public:
     void AttachGround(std::shared_ptr<Ground>);
     void AttachSpotLights(std::vector<std::shared_ptr<SpotLight>>& spotlight);
     void AttachPointLights(std::vector<std::shared_ptr<PointLight>>& pointLight);
+    void AttachGameObject(std::shared_ptr<Entity>);
 
 private:
     void RenderSceneIntoDepth();
@@ -63,6 +64,7 @@ private:
     std::weak_ptr<Camera> mCamera;
     std::weak_ptr<Skybox> mSkybox;
     std::weak_ptr<Ground> mGround;
+    std::vector<std::shared_ptr<Entity>> mGameObjects;
 
     std::vector<std::shared_ptr<SpotLight>> mSpotLights;
     std::vector<std::shared_ptr<PointLight>> mPointLights;

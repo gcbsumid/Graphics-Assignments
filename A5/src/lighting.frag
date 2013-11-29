@@ -44,12 +44,14 @@ uniform int numSpotLights;
 uniform PointLight point_light[MAX_POINT_LIGHTS];
 uniform SpotLight spot_light[MAX_SPOT_LIGHTS];
 uniform vec3 camera_position;
+uniform mat4 rotation_matrix;
 // uniform mat4 rot_matrix;
 
 // Material stuff
 uniform float mat_specular_intensity;
 uniform float shininess;
 uniform sampler2D color_map;
+uniform vec3 color;
 
 vec4 CalcLightInternal(BaseLight Light, vec3 LightDirection, vec3 Normal) {
     vec4 ambient_color = vec4(Light.Color, 1.0) * Light.AmbientIntensity;
@@ -104,19 +106,24 @@ vec4 CalcSpotLight(SpotLight l, vec3 Normal) {
 }
 
 void main() {
-    // vec4 total_light = CalcDirectionalLight(fragNormal);                                         
+    // vec4 total_light = CalcDirectionalLight(fragNormal);       
+    vec3 norm = normalize((rotation_matrix * vec4(fragNormal,1.0f)).xyz);                                  
     vec4 total_light = vec4(0,0,0,1);
                                                                                             
     for (int i = 0 ; i < numPointLights ; i++) {                                           
-        total_light += CalcPointLight(point_light[i], fragNormal);                              
+        total_light += CalcPointLight(point_light[i], norm);                              
     }                                                                                       
                                                                                             
     for (int i = 0 ; i < numSpotLights ; i++) {                                            
-        total_light += CalcSpotLight(spot_light[i], fragNormal);                                
-    }                                                                                       
-                                                                                            
-    vec4 fragColor = texture(color_map, fragCoord.xy) * total_light;   
+        total_light += CalcSpotLight(spot_light[i], norm);                                
+    } 
+
+    vec4 fragColor;
+    if (color == vec3(0,0,0)){
+        fragColor = texture(color_map, fragCoord.xy) * total_light;   
+    } else {
+        fragColor = vec4(color, 1.0) * total_light;   
+    }
 
     finalColour = vec4(fragColor.x, fragColor.y, fragColor.z, 1.0);
-    // finalColour = vec4(1., 1.0);
 }

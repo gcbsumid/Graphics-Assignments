@@ -16,7 +16,7 @@ void main() {
     gl_Position = persp_matrix * model_matrix * vec4(vert, 1.0f);
     // fragTextCoord = texcoord;
     fragVert = (model_matrix * vec4(vert, 1.0f)).xyz;
-    fragNormal = (model_matrix * vec4(normal, 1.0f)).xyz;
+    fragNormal = normal;
     fragCoord = texcoord;
 
     // gl_Position = model_matrix * vec4(vert, 1.0f);

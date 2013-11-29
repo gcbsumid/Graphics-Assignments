@@ -42,8 +42,8 @@ int Entity::GetID() const {
 
 glm::mat4 Entity::GetTransform() {
     mTransform = glm::scale(glm::mat4(), mScale);
-    mTransform *= mRotate;
     mTransform *= glm::translate(glm::mat4(), mPosition);
+    mTransform *= mRotate;
     // mTransform = 
     // mScale * mRotate * 
     return mTransform;
@@ -102,3 +102,22 @@ glm::mat4 Entity::GetRotate() const {
     return mRotate;
 }
 
+bool Entity::Render(std::shared_ptr<Program>& shader) {
+    mMesh->Render(shader);
+    return true;
+}
+
+bool Entity::RenderMesh(std::shared_ptr<Program>& shader) {
+    mMesh->Render(shader);
+    return true;
+}
+
+bool Entity::AddMesh(const string& filename) {
+    mMesh = shared_ptr<Mesh>(new Mesh());
+
+    return mMesh->LoadMesh(filename);
+}
+
+void Entity::AttachColor(glm::vec3 color, unsigned int meshID) {
+    mMesh->AttachColor(color, meshID);
+}

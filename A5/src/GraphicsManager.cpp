@@ -6,6 +6,7 @@
 #include <GL/glfw.h>
 
 #include "GraphicsManager.hpp"
+#include "Pipeline.hpp"
 
 using namespace std;
 
@@ -88,16 +89,33 @@ void GraphicsManager::RenderShadowVolumeIntoStencil() {
 }
 
 void GraphicsManager::RenderShadowedScene() {
+    auto camera = mCamera.lock();
 
     for (unsigned int i = 0; i < mPointLights.size(); ++i) {
         mPointLights.at(i)->mAmbientIntensity = 0.2f;
         mPointLights.at(i)->mDiffuseIntensity = 0.8f;
     }
+    for (unsigned int i = 0; i < mSpotLights.size(); ++i) {
+        mSpotLights.at(i)->mPosition = camera->GetPos();
+        mSpotLights.at(i)->mDirection = camera->Forward();
+    }
+
+    Pipeline p;
+    p.SetPerspective(camera->GetPerspMatrix());
+    p.SetCamera(camera->GetPos(), camera->Forward(), camera->Up());
 
     mLightingTechnique->Enable();
+    mLightingTechnique->SetCameraPosition(camera->GetPos());
     mLightingTechnique->SetColorTextureUnit(0);
     mLightingTechnique->SetPointLights(mPointLights.size(), mPointLights);
     mLightingTechnique->SetSpotLights(mSpotLights.size(), mSpotLights);
+    mLightingTechnique->SetPerspectiveMatrix(p.GetPerspectiveCameraTrans());
+
+    for (auto& ent : mGameObjects) {
+        mLightingTechnique->SetModelMatrix(glm::transpose(ent->GetTransform()));
+        mLightingTechnique->SetRotMatrix(ent->GetRotate());
+        ent->Render(mLightingTechnique->GetProgram());
+    }
 
     if (mGround.use_count()) {
         auto ground = mGround.lock();
@@ -113,6 +131,11 @@ void GraphicsManager::RenderShadowedScene() {
 void GraphicsManager::RenderAmbientLight() {
 
 }
+
+void GraphicsManager::AttachGameObject(std::shared_ptr<Entity> ent) {
+    mGameObjects.push_back(ent);
+}
+
 
 void GraphicsManager::AttachCamera(shared_ptr<Camera> camera) {
     mCamera = camera;

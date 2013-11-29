@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "Component.hpp"
+#include "Mesh.hpp"
 
 class Entity {
 public:
@@ -19,15 +20,21 @@ public:
     int GetID() const;
     glm::mat4 GetTransform();
 
+    virtual bool Render(std::shared_ptr<Program>& shader);
+    virtual bool RenderMesh(std::shared_ptr<Program>& shader);
+
     virtual void Scale(glm::vec3 scale);
     virtual void Translate(glm::vec3 pos);
     virtual void Rotate(char axis, float angle);
     virtual void Rotate(glm::vec3 axis, float angle);
 
+    void AttachColor(glm::vec3 color, unsigned int meshID);
 
     virtual glm::mat4 GetScale() const;
     virtual glm::mat4 GetTranslate() const;
     virtual glm::mat4 GetRotate() const;
+
+    virtual bool AddMesh(const std::string& filename);
 
     // For Debug only
     void DisplayTransform();
@@ -37,6 +44,8 @@ protected:
     int mID;
 
     glm::mat4 mTransform;
+
+    std::shared_ptr<Mesh> mMesh;
 
     glm::vec3 mPosition;
     glm::vec3 mScale;

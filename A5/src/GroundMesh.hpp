@@ -22,6 +22,8 @@ public:
 
     virtual void Render(std::shared_ptr<Program> shader);
 
+    virtual void Subdivide(int numOfIteration);
+
 protected:
 
     // void CreateFace(std::vector<unsigned int>& face_indices, 

@@ -29,8 +29,8 @@ public:
 
     virtual ~Ground();
 
-    bool Render();
-    bool RenderMesh();
+    virtual bool Render();
+    virtual bool RenderMesh();
     void AttachSpotLights(std::vector<std::shared_ptr<SpotLight>>& spotlight);
     void AttachPointLights(std::vector<std::shared_ptr<PointLight>>& pointLight);
 

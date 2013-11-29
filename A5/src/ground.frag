@@ -38,14 +38,13 @@ struct SpotLight {
     float CutOff;
 };
 
-uniform mat4 rotation_matrix;
 uniform int numPointLights;
 uniform int numSpotLights;
 // uniform DirectionalLight directionalLight;
 uniform PointLight point_light[MAX_POINT_LIGHTS];
 uniform SpotLight spot_light[MAX_SPOT_LIGHTS];
 uniform vec3 camera_position;
-uniform mat4 model_matrix;
+uniform mat4 rotation_matrix;
 
 // Material stuff
 uniform float mat_specular_intensity;
@@ -56,7 +55,7 @@ vec4 CalcLightInternal(BaseLight Light, vec3 LightDirection, vec3 Point, vec3 No
     // vec4 temp = vec4(0,0,1,0);
 
     // vec3 norm = (model_matrix * vec4(fragNormal,1.0f)).xyz;
-    // vec3 temp = Normal;
+    // vec3 temp = -Normal;
     float diffuse_factor = dot(Normal, -LightDirection); // <- take note of this
 
     vec4 diffuse_color = vec4(0,0,0,1);
@@ -72,6 +71,7 @@ vec4 CalcLightInternal(BaseLight Light, vec3 LightDirection, vec3 Point, vec3 No
         if (specular_factor > 0) {
             specular_color = vec4(Light.Color, 1.0f) * mat_specular_intensity * specular_factor;
         }
+        // diffuse_color = vec4(-LightDirection, 1.0);
     } else {
         // diffuse_color = vec4(temp, 1.0);
     }
@@ -116,21 +116,21 @@ float rand(vec2 n)
 }
 
 void main() {
-    vec3 vert = (model_matrix * vec4(fragVert,1.0f)).xyz;
+    // vec3 vert = (model_matrix * vec4(fragVert,1.0f)).xyz;
     vec3 norm = normalize((rotation_matrix * vec4(fragNormal,1.0f)).xyz);
-    // vec4 grass_color = vec4(vec3(0.0, 1.0, 0.0) * rand(fragVert.xy), 1.0); // the random noise value for grass
+    vec4 grass_color = vec4(vec3(0.0, 1.0, 0.0) * rand(fragVert.xy), 1.0); // the random noise value for grass
     vec4 total_light = vec4(0,0,0,1); // CalcDirectionalLight(fragNormal);                                         
                                                                                             
     for (int i = 0 ; i < numPointLights ; i++) {                                           
-        total_light += CalcPointLight(point_light[i], vert, norm);                              
+        total_light += CalcPointLight(point_light[i], fragVert, norm);                              
     }                                                                                       
                                                                                             
     for (int i = 0 ; i < numSpotLights ; i++) {                                            
-        total_light += CalcSpotLight(spot_light[i], vert, norm);                                
+        total_light += CalcSpotLight(spot_light[i], fragVert, norm);                                
     }                                                                                       
                                                                                             
-    // vec3 fragColor = (grass_color * total_light).xyz;   
-    vec3 fragColor = (total_light).xyz;   
+    vec3 fragColor = (grass_color * total_light).xyz;   
+    // vec3 fragColor = (total_light).xyz;   
 
 
     finalColour = vec4(fragColor.x, fragColor.y, fragColor.z, 1.0);

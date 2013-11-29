@@ -22,4 +22,14 @@
 # CTags
 *.tags*
 
+# Images
+*.png
+*.jpg
 
+# Model Files
+*.blend*
+*.obj
+*.mtl
+*.3ds
+*.dds
+*.mat

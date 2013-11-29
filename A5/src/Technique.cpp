@@ -30,7 +30,7 @@ bool Technique::CompileShaders() {
     return true;
 }
 
-shared_ptr<Program> Technique::GetProgram() {
+shared_ptr<Program>& Technique::GetProgram() {
     return mProgram;
 }
 

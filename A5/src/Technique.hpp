@@ -17,7 +17,7 @@ public:
     void Enable();
     void Disable();
 
-    std::shared_ptr<Program> GetProgram();
+    std::shared_ptr<Program>& GetProgram();
 
 protected:
     bool AddShader(const std::string& filePath, GLenum shaderType);

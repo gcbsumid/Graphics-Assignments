@@ -99,13 +99,18 @@ public:
 
     bool LoadMesh(const std::string& Filename);
 
-    virtual void Render(std::shared_ptr<Program> shader);
+    void AttachColor(glm::vec3 color, unsigned int meshID);
 
-    void Subdivide(int numOfIteration);
+    virtual void Render(std::shared_ptr<Program>& shader);
+
+    virtual void Subdivide(int numOfIteration);
 
 protected:
 
-    void SubdivideMeshEntry(int numOfIteration, int index);
+    void SubdivideMeshEntry(std::vector<WE_Edge*>& edge_list,
+                            std::vector<WE_Face*>& face_list,
+                            std::vector<WE_Vertex*>& vertex_list,
+                            std::vector<unsigned int>& indices);
 
     void CreateFace(std::vector<WE_Edge*>& edges_list, 
                       std::vector<WE_Face*>& face_list, 
@@ -158,6 +163,8 @@ protected:
         unsigned int mMaterialIndex;
         unsigned int mBaseVertex;
         unsigned int mBaseIndex;
+
+        glm::vec3 mColor;
     };
 
     GLuint mVertexArray;
