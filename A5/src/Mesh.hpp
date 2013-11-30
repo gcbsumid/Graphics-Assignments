@@ -133,6 +133,7 @@ protected:
     bool InitMaterials(const aiScene* pScene, const std::string& Filename);
     void SetMaterialData(const aiMaterial* material, Texture* texture);
     virtual void Clear();
+    virtual void ClearTextures();
 
 #define INVALID_MATERIAL 0xFFFFFFFF
 #define INVALID_OGL_VALUE 0xFFFFFFFF

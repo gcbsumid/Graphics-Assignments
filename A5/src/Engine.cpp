@@ -50,7 +50,7 @@ Engine::Engine() {
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-
+    glEnable(GL_MULTISAMPLE);
 
     // glEnable(GL_TEXTURE_2D);
     // glEnable(GL_NORMALIZE);
@@ -230,4 +230,24 @@ void Engine::CreateSlenderman() {
     slender->AttachColor(glm::vec3(0.05,0.05,0.05), 8);
 
     mEntities.push_back(shared_ptr<Entity>(slender));
+
+    Entity* crate = new Entity();
+    if (!crate->AddMesh("temp/Crate1.obj")) {
+        cerr << "Error loading: crate.3ds" << endl;
+    }
+
+    // crate->Scale(glm::vec3(0.01, 0.01, 0.01));
+    crate->Translate(glm::vec3(0,-9.5,0));
+
+    mEntities.push_back(shared_ptr<Entity>(crate));
+
+    Entity* house = new Entity();
+    if (!house->AddMesh("resources/CasaSimples.obj")) {
+        cerr << "Error loading: CasaSimples.obj" << endl;
+    }
+
+    // house->Scale(glm::vec3(0.01, 0.01, 0.01));
+    house->Translate(glm::vec3(-10,-8,0));
+
+    mEntities.push_back(shared_ptr<Entity>(house));
 }

@@ -24,9 +24,9 @@ bool Texture::Load() {
     Magick::Image* image = nullptr;
     Magick::Blob blob;
 
-    image = new Magick::Image(mFilename);
 
     try {
+        image = new Magick::Image(mFilename);
         image->write(&blob, "RGBA");
     } catch (Magick::Error& error) {
         cerr << "Error Loading texture '" << mFilename << "': " << error.what() << endl;
@@ -43,29 +43,29 @@ bool Texture::Load() {
                     GL_RGBA,
                     GL_UNSIGNED_BYTE, blob.data());
 
-    delete image;
 
     // setting parameters
-glTexParameteri(mTextureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(mTextureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(mTextureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(mTextureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(mTextureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+    delete image;
     return true;
 }
 
-void Texture::Bind(shared_ptr<Program> shader) {
-    GLint tex = shader->Uniform("material.tex");
-    GLint shininess = shader->Uniform("material.shininess");
-    GLint specularColor = shader->Uniform("material.specular_color");
+void Texture::Bind(shared_ptr<Program>& shader) {
+    // GLint tex = shader->Uniform("material.tex");
+    // GLint shininess = shader->Uniform("material.shininess");
+    // GLint specularColor = shader->Uniform("material.specular_color");
 
-    // std::cout << "tex: " << tex << std::endl;
-    // std::cout << "shininess: " << shininess << std::endl;
-    // std::cout << "specularColor: " << specularColor << std::endl;
+    // // std::cout << "tex: " << tex << std::endl;
+    // // std::cout << "shininess: " << shininess << std::endl;
+    // // std::cout << "specularColor: " << specularColor << std::endl;
 
-    glUniform1f(tex, 0);
-    glUniform1f(shininess, mShininess);
-    glUniform3f(specularColor, mSpecular[0], mSpecular[1], mSpecular[2]); // not sure if this is right though.
+    // glUniform1f(tex, 0);
+    // glUniform1f(shininess, mShininess);
+    // glUniform3f(specularColor, mSpecular[0], mSpecular[1], mSpecular[2]); // not sure if this is right though.
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(mTextureTarget, mTextureObj);

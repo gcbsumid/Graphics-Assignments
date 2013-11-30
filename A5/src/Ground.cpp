@@ -70,7 +70,10 @@ bool Ground::Render() {
     mGroundTech->SetSpotLights(mSpotLights.size(), mSpotLights);
     mGroundTech->SetPerspectiveMatrix(pipeline.GetPerspectiveCameraTrans());
     mGroundTech->SetModelMatrix(glm::transpose(GetTransform()));
-    mGroundTech->SetRotMatrix(GetRotate());
+    glm::mat4 rotate = GetScale() * GetRotate();
+    mGroundTech->SetRotMatrix(glm::transpose(rotate));
+
+    // mGroundTech->SetRotMatrix(GetRotate());
     mGroundMesh->Render(mGroundTech->GetProgram());
 
     glEnable(GL_CULL_FACE);

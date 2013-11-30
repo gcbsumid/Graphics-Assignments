@@ -115,12 +115,9 @@ void GraphicsManager::RenderShadowedScene() {
     // mLightingTechnique->SetShininess(0.5);
     for (auto& ent : mGameObjects) {
         mLightingTechnique->SetModelMatrix(glm::transpose(ent->GetTransform()));
-        // mLightingTechnique->SetRotMatrix(glm::transpose(ent->GetTransform()));
         glm::mat4 rotate = ent->GetScale() * ent->GetRotate();
-
         mLightingTechnique->SetRotMatrix(glm::transpose(rotate));
 
-        // mLightingTechnique->SetRotMatrix(glm::transpose(ent->GetRotate() * ent->GetScale()));
         ent->Render(mLightingTechnique->GetProgram());
     }
 

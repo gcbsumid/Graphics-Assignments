@@ -89,6 +89,7 @@ Mesh::Mesh(){
 
 Mesh::~Mesh() {
     Clear();
+    ClearTextures();
 }
 
 void Mesh::Clear() {
@@ -99,11 +100,14 @@ void Mesh::Clear() {
     if (mVertexArray != INVALID_OGL_VALUE) {
         glDeleteVertexArrays(1, &mVertexArray);
     }
+}
 
+void Mesh::ClearTextures() {
     for (unsigned int i = 0; i < mTextures.size(); ++i) {
         delete mTextures.at(i);
     }
 
+    mTextures.clear();
 }
 
 bool Mesh::LoadMesh(const string& filename) {
@@ -212,6 +216,10 @@ void Mesh::InitMesh(unsigned int index,
                     vector<glm::vec3>& normal,
                     vector<glm::vec2>& texcoord,
                     vector<unsigned int>& indices) {
+    // This removes errors at the beginning
+    glGetError();
+
+
     mEntries.at(index).mMaterialIndex = mesh->mMaterialIndex;
 
     const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
@@ -266,6 +274,7 @@ void Mesh::InitMesh(unsigned int index,
 bool Mesh::InitMaterials(const aiScene* scene, const string& filename)
 {
     // Extract the directory part from the file name
+    ClearTextures();
     std::string::size_type SlashIndex = filename.find_last_of("/");
     string Dir;
 
@@ -287,14 +296,14 @@ bool Mesh::InitMaterials(const aiScene* scene, const string& filename)
     for (unsigned int i = 0 ; i < scene->mNumMaterials ; i++) {
         const aiMaterial* material = scene->mMaterials[i];
 
-        mTextures[i] = NULL;
+        mTextures.push_back(NULL);
 
         if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
             aiString path;
 
             if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
                 string fullPath = Dir + "/" + path.data;
-                mTextures[i] = new Texture(GL_TEXTURE_2D, fullPath.c_str());
+                mTextures.at(i) = new Texture(GL_TEXTURE_2D, fullPath.c_str());
 
                 if (!mTextures[i]->Load()) {
                     printf("Error loading texture '%s'\n", fullPath.c_str());
@@ -303,7 +312,7 @@ bool Mesh::InitMaterials(const aiScene* scene, const string& filename)
                     Ret = false;
                 }
                 else {
-                    printf("Loaded texture '%s'\n", fullPath.c_str());
+                    printf("Loaded texture '%s' at index %i\n", fullPath.c_str(), (int)i);
                 }
             } else {
                 cout << "No Texture!" << endl;
@@ -329,8 +338,9 @@ void Mesh::Render(std::shared_ptr<Program>& shader)
     for (unsigned int i = 0 ; i < mEntries.size() ; i++) {
         const unsigned int materialIndex = mEntries[i].mMaterialIndex;
 
-        if (materialIndex < mTextures.size() && mTextures[materialIndex]) {
-            mTextures[materialIndex]->Bind(shader);
+        cout << "Material Index: " << materialIndex << endl;
+        if (materialIndex < mTextures.size() && mTextures.at(materialIndex)) {
+            mTextures.at(materialIndex)->Bind(shader);
         }
 
         if (mEntries.at(i).mColor != glm::vec3()) {

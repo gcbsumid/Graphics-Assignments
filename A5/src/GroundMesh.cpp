@@ -111,12 +111,12 @@ GroundMesh::~GroundMesh() {
 }
 
 double GroundMesh::height(double currentHeight) {
-    return 0; // Test
-    // if (currentHeight >= mMaxHeight || currentHeight <= mMinHeight) {
-    //     return currentHeight;
-    // }
-    // // std::cout << "mRand(Gen): " << mRand(mGen) << endl;
-    // return (currentHeight + mRand(mGen));
+    // return 0; // Test
+    if (currentHeight >= mMaxHeight || currentHeight <= mMinHeight) {
+        return currentHeight;
+    }
+    // std::cout << "mRand(Gen): " << mRand(mGen) << endl;
+    return (currentHeight + mRand(mGen));
 
 
     // double height = 0;

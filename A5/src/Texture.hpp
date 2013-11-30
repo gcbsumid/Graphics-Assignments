@@ -15,7 +15,7 @@ public:
 
     virtual bool Load();
 
-    virtual void Bind(std::shared_ptr<Program> shader);
+    virtual void Bind(std::shared_ptr<Program>& shader);
     virtual void Unbind();
 
     void SetDiffuse(glm::vec4 diffuse);
