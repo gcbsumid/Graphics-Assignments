@@ -162,6 +162,5 @@ void LightingTechnique::SetModelMatrix(const glm::mat4& model) {
 }
 
 void LightingTechnique::SetRotMatrix(const glm::mat4& rot) {
-    cout << "mRotMatrixLocation: " << mRotMatrixLocation << endl;
     glUniformMatrix4fv(mRotMatrixLocation, 1, GL_TRUE, glm::value_ptr(rot));
 }

@@ -111,6 +111,19 @@ GLuint Program::Attrib(const GLchar* attribName) const {
     return attrib;
 }
 
+bool Program::DoesUniformExistInShader(const GLchar* uniformName) const {
+    if (!uniformName) {
+        throw std::runtime_error("uniformName was NULL");
+    }
+
+    GLint uniform = glGetUniformLocation(mObject, uniformName);
+
+    if (uniform == -1) {
+        return false;
+    } 
+    return true;
+}
+
 GLint Program::Uniform(const GLchar* uniformName) const {
     if (!uniformName) {
         throw std::runtime_error("uniformName was NULL");

@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <GL/glfw.h>
 #include <cmath>
+#include <random>
 
 #include "Engine.hpp"
 
@@ -25,8 +26,11 @@ Engine::Engine() {
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
     glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
-    if (!glfwOpenWindow(512, 512, 8, 8, 8, 8, 16, 0, GLFW_WINDOW))
+    if (!glfwOpenWindow(512, 512, 8, 8, 8, 8, 32, 24, GLFW_WINDOW))
         throw runtime_error("glfwOpenWindow failed. Hardware can't handle OpenGL 3.3");
+
+    cout << "Stencil bits: " << glfwGetWindowParam( GLFW_STENCIL_BITS ) << endl;
+    cout << "Depth bits: " << glfwGetWindowParam( GLFW_DEPTH_BITS ) << endl;
 
     // initialise GLEW
     glewExperimental = GL_TRUE;
@@ -50,7 +54,10 @@ Engine::Engine() {
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_DEPTH_CLAMP);
+    glEnable(GL_TEXTURE_2D);
+    glDepthFunc(GL_LEQUAL);
+    glDepthRange(0.1, 1.0);
 
     // glEnable(GL_TEXTURE_2D);
     // glEnable(GL_NORMALIZE);
@@ -79,24 +86,20 @@ Engine::~Engine() {
 }
 
 void Engine::Update(double timeTick) {
-    // deal with input
-    // mInput->HandleInput(timeTick);
-
-    // Deal with Physics
-    // mPhysics->HandleInput(timeTick);
-
-    // Deal with AI
-    // mAI->Action(timeTick);    
+    mAI->Action(timeTick);
 }
 
 void Engine::Run() {
     auto lastFrame = chrono::high_resolution_clock::now();
     auto currentFrame = lastFrame;
+    double last_time = 0;
 
     // bool done = false;
     while (glfwGetWindowParam(GLFW_OPENED)) {
         currentFrame = chrono::high_resolution_clock::now();
-        float tick = chrono::duration_cast<chrono::milliseconds>(currentFrame-lastFrame).count() / 1000.0f;
+        float cur_time = chrono::duration_cast<chrono::milliseconds>(currentFrame-lastFrame).count() / 1000.0f;
+        double tick = (double)cur_time - last_time;
+        last_time = cur_time;
         Update(tick);
 
         // Use the frame slices
@@ -139,8 +142,9 @@ void Engine::CreateObjects() {
     mCamera = shared_ptr<Camera>(new Camera());
     mGraphics->AttachCamera(mCamera);
     mInput->AttachCamera(mCamera);
+    mAI->AttachCamera(mCamera);
 
-    // mCamera->Translate(glm::vec3(0.0, 10.0, 0.0));
+    mCamera->Translate(glm::vec3(0.0, 2.0, 0.0));
 
     CreateSlenderman();
     CreateLights();
@@ -157,7 +161,7 @@ void Engine::CreateLights() {
     shared_ptr<PointLight> p1(new PointLight());
 
     p1->mColor = glm::vec3(1.0, 1.0, 1.0); // white
-    p1->mPosition = glm::vec3(0.0, -5.0, 0.0);
+    p1->mPosition = glm::vec3(mCamera->GetPos());
     p1->mAttenuation.mLinear = 0.3f;
 
     mPointLights.push_back(p1);
@@ -203,7 +207,7 @@ void Engine::CreateSkybox() {
 
     mGround = shared_ptr<Ground>(new Ground(mCamera, 20, 20, 5, -5));
     // mGround->Translate(glm::vec3(-10,-10,-10));
-    mGround->Translate(glm::vec3(0,-10,0));
+    // mGround->Translate(glm::vec3(0,-10,0));
     mGround->Scale(glm::vec3(10.0, 1.0, 10.0));
     mGround->AttachSpotLights(mSpotLights);
     mGround->AttachPointLights(mPointLights);
@@ -211,43 +215,72 @@ void Engine::CreateSkybox() {
 }
 
 void Engine::CreateSlenderman() {
-    Entity* slender = new Entity();
-    if (!slender->AddMesh("resources/slenderman2.3ds")) {
-        cerr << "Error loading: slenderman2.3ds" << endl;
+    shared_ptr<Entity> slender(new Entity());
+    if (!slender->AddMesh("resources/slenderman.3ds", true)) {
+        cerr << "Error loading: slenderman.3ds" << endl;
     }
     slender->Scale(glm::vec3(0.5, 0.5, 0.5));
-    slender->Translate(glm::vec3(0, 0, -10));
-    slender->Rotate(glm::vec3(1,0,0), -90);
+    slender->Translate(glm::vec3(-10, 1.4, -2));
+    // slender->Rotate(glm::vec3(1,0,0), -90);
 
-    slender->AttachColor(glm::vec3(0.8,0.8,0.8), 0);
-    slender->AttachColor(glm::vec3(0.8,0.8,0.8), 1);
-    slender->AttachColor(glm::vec3(0.8,0.8,0.8), 2);
-    slender->AttachColor(glm::vec3(0.8,0.8,0.8), 3);
-    slender->AttachColor(glm::vec3(1.0,0,0), 4);
-    slender->AttachColor(glm::vec3(1.0,1.0,1.0), 5);
-    slender->AttachColor(glm::vec3(0.05,0.05,0.05), 6);
-    slender->AttachColor(glm::vec3(0.8,0.8,0.8), 7);
-    slender->AttachColor(glm::vec3(0.05,0.05,0.05), 8);
+    slender->AttachColor(glm::vec3(0.8f,0.8f,0.8f), 0);
+    slender->AttachColor(glm::vec3(0.8f,0.8f,0.8f), 1);
+    slender->AttachColor(glm::vec3(0.8f,0.8f,0.8f), 2);
+    slender->AttachColor(glm::vec3(0.8f,0.8f,0.8f), 3);
+    slender->AttachColor(glm::vec3(1.0f,0.0f,0.0f), 4);
+    slender->AttachColor(glm::vec3(1.0f,1.0f,1.0f), 5);
+    slender->AttachColor(glm::vec3(0.05f,0.05f,0.05f), 6);
+    slender->AttachColor(glm::vec3(0.8f,0.8f,0.8f), 7);
+    slender->AttachColor(glm::vec3(0.05f,0.05f,0.05f), 8);
 
-    mEntities.push_back(shared_ptr<Entity>(slender));
+    mAI->AttachSlender(slender);
+
+    mEntities.push_back(slender);
 
     Entity* crate = new Entity();
-    if (!crate->AddMesh("temp/Crate1.obj")) {
+    if (!crate->AddMesh("resources/Crate1.obj", true)) {
         cerr << "Error loading: crate.3ds" << endl;
     }
 
     // crate->Scale(glm::vec3(0.01, 0.01, 0.01));
-    crate->Translate(glm::vec3(0,-9.5,0));
+    crate->Translate(glm::vec3(-3,1,0));
 
     mEntities.push_back(shared_ptr<Entity>(crate));
 
     Entity* house = new Entity();
-    if (!house->AddMesh("resources/CasaSimples.obj")) {
+    if (!house->AddMesh("resources/CasaSimples.obj", true)) {
         cerr << "Error loading: CasaSimples.obj" << endl;
     }
 
     // house->Scale(glm::vec3(0.01, 0.01, 0.01));
-    house->Translate(glm::vec3(-10,-8,0));
+    house->Translate(glm::vec3(-10,2,0));
 
     mEntities.push_back(shared_ptr<Entity>(house));
+
+    Entity* tree = new Entity();
+    if (!tree->AddMesh("temp/trees9.3ds", true)) {
+        cerr << "Error loading: trees9.3ds" << endl;
+    }
+
+    tree->Scale(glm::vec3(0.3, 0.3, 0.3));
+    tree->Rotate(glm::vec3(1,0,0), -90);
+    tree->Translate(glm::vec3(0,0,10));
+
+    mEntities.push_back(shared_ptr<Entity>(tree));
+
+    // random_device rd;
+    // mt19937 gen(rd());
+    // uniform_real_distribution<> tree_loc(-100, 100);
+    // uniform_real_distribution<> tree_size(0.3, 0.7);
+    // for (int i = 0; i < 30; i++) {
+    //     Entity* tree = new Entity();
+    //     if (!tree->AddMesh("temp/tree_oak.obj", true)) {
+    //         cerr << "Error loading: tree_oak.obj" << endl;
+    //     }
+
+    //     tree->Scale(glm::vec3(tree_size(gen), tree_size(gen), tree_size(gen)));
+    //     tree->Translate(glm::vec3(tree_loc(gen),0,tree_loc(gen)));
+
+    //     mEntities.push_back(shared_ptr<Entity>(tree));
+    // }
 }

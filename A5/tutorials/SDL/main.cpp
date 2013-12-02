@@ -123,9 +123,9 @@ int main(int argc, char *argv[])
   Uint8* keys; 
   int done=0; 
 
-  SM.LoadSound("card.wav");
-  SM.LoadSound("OBS.wav");
-  SM.LoadSound("ghost.wav");
+  SM.LoadSound("eerie.wav");
+  SM.LoadSound("indicator.wav");
+  SM.LoadSound("static.mp3");
   SM.LoadMusic("UNREAL.S3M");
   
 

@@ -8,9 +8,9 @@ uniform mat4 persp_matrix;
 uniform mat4 model_matrix;
 // uniform mat4 wvp_matrix;
 
-out vec3 fragVert;
-out vec3 fragNormal;
-out vec2 fragCoord;
+invariant out vec3 fragVert;
+invariant out vec3 fragNormal;
+invariant out vec2 fragCoord;
 
 void main() {
     gl_Position = persp_matrix * model_matrix * vec4(vert, 1.0f);

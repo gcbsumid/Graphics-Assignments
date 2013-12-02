@@ -7,18 +7,13 @@ in vec3 fragVert;
 in vec3 fragNormal;
 in vec2 fragCoord;
 
-out vec4 finalColour;
+invariant out vec4 finalColour;
 
 struct BaseLight {
     vec3 Color;             // Light color
     float AmbientIntensity; // Ambient intensity for phong
     float DiffuseIntensity; // Diffuse intensity for phong
 };
-
-// struct DirectionalLight {
-//     BaseLight Base;
-//     vec3 Direction;
-// };
 
 struct Attenuation {
     float Constant;

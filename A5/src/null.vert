@@ -1,7 +1,9 @@
-in vec3 Position;
+#version 330 core 
 
-uniform mat4 gWVP;
+layout (location = 0) in vec3 vert;
+invariant gl_Position;
+uniform mat4 wvp_matrix;
 
 void main() {
-    gl_Position = gWVP * vec4(Position, 1.0);
+    gl_Position = wvp_matrix * vec4(vert, 1.0);
 }

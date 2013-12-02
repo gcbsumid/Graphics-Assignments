@@ -33,10 +33,8 @@ Ground::Ground(const std::shared_ptr<Camera> camera,
 Ground::~Ground() {
 }
 
-bool Ground::RenderMesh() {
-    glDisable(GL_CULL_FACE);
-    mGroundMesh->Render(mGroundTech->GetProgram());
-    glEnable(GL_CULL_FACE);
+bool Ground::RenderMesh(std::shared_ptr<Program>& shader) {
+    mGroundMesh->Render(shader);
     return true;
 }
 
@@ -48,6 +46,7 @@ bool Ground::Render() {
     auto camera = mCamera.lock();
 
     Pipeline pipeline;
+    // pipeline.SetPerspective(glm::transpose(camera->GetGLMPerspMatrix()));
     pipeline.SetPerspective(camera->GetPerspMatrix());
     pipeline.SetCamera(camera->GetPos(), camera->Forward(), camera->Up());
 

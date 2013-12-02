@@ -12,7 +12,7 @@ class Camera : public Entity {
 public:
     Camera(float fov = 90.0f,
                float near = 0.1f,
-               float far = 1000.0f,
+               float far = 100.0f,
                float aspect = 1.0f);
 
     // Determines how wide the view of the camera is
@@ -20,8 +20,6 @@ public:
     // the combined camera transformation matrix
     glm::mat4 GetPerspMatrix();
     glm::mat4 GetGLMPerspMatrix();
-
-    virtual glm::vec3 GetPos();
 
     void OffsetOrientation(float upOffset, float rightOffset);
     virtual glm::mat4 GetRotate();
@@ -54,8 +52,7 @@ private:
     // glm::vec3 mPosition; 
     bool mNeedUpdate;
 
-    float mVerticalAngle;
-    float mHorizontalAngle;
+    // float mHorizontalAngle;
 };
 
 #endif

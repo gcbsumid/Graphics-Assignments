@@ -24,6 +24,7 @@ public:
     // void HandleMouseButton(SDL_MouseButtonEvent button);
 
     bool GetLightStatus();
+    bool GetShadowStatus();
 
 private:
     std::weak_ptr<Camera> mCamera;
@@ -31,6 +32,7 @@ private:
     glm::vec2 mPrev, mCur;
     float mUpAngle, mRightAngle;
     bool mLightStatus;
+    bool mShadowStatus;
 };
 
 #endif

@@ -32,6 +32,8 @@ public:
 
     int GetID() const;
 
+    bool DoesUniformExistInShader(const GLchar* uniformName) const;
+
     // Setters for attribute and uniform variables.
     // These are convenience methoods for the glVertexAttrib* and 
     // glUniformAttrib* functions

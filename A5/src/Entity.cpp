@@ -12,7 +12,10 @@ static int ID_ENT_COUNTER = 0;
 
 Entity::Entity() 
     : mPosition(0,0,0)
-    , mScale(1,1,1) {
+    , mScale(1,1,1)
+    , mHorizontalAngle(0.0f)
+    , mVerticalAngle(0.0f) 
+    , mHasAdjacency(false) {
     mID = ID_ENT_COUNTER++;
 }
 
@@ -25,6 +28,10 @@ void Entity::AddComponent(Component* comp) {
     }
 
     mComponents[type] = shared_ptr<Component>(comp);
+}
+
+bool Entity::HasAdjacency() {
+    return mHasAdjacency;
 }
 
 shared_ptr<Component> Entity::GetComponent(Component::CompType type) const {
@@ -67,6 +74,12 @@ void Entity::Rotate(char axis, float angle) {
         r = glm::rotate(r, angle, glm::vec3(1,0,0));
     } else if (axis == 'y') {
         r = glm::rotate(r, angle, glm::vec3(0,1,0));
+        mHorizontalAngle += angle;
+        if (mHorizontalAngle < 0.0f) {
+           mHorizontalAngle += 360.0f;
+        } else if (mHorizontalAngle >= 360.0f) {
+            mHorizontalAngle -= 360.0f;
+        }
     } else if (axis == 'z') {
         r = glm::rotate(r, angle, glm::vec3(0,0,1));
     } else {
@@ -77,11 +90,30 @@ void Entity::Rotate(char axis, float angle) {
 }
 
 void Entity::Rotate(glm::vec3 axis, float angle) {
-    glm::mat4 r; 
+    if (axis == glm::vec3(0,1,0)) {
+        mHorizontalAngle += angle;
+        if (mHorizontalAngle < 0.0f) {
+           mHorizontalAngle += 360.0f;
+        } else if (mHorizontalAngle >= 360.0f) {
+            mHorizontalAngle -= 360.0f;
+        }
+    }
 
-    r = glm::rotate(r, angle, axis);
+    glm::mat4 r = glm::rotate(glm::mat4(), angle, axis);
 
     mRotate = r * mRotate;
+}
+
+void Entity::SetPosition(glm::vec3 pos) {
+    mPosition = pos;
+}
+
+glm::vec3 Entity::GetPos() {
+    return mPosition;
+}
+
+float Entity::GetHorizontalRotationAngle() const {
+    return mHorizontalAngle;
 }
 
 void Entity::DisplayTransform() {
@@ -112,8 +144,9 @@ bool Entity::RenderMesh(std::shared_ptr<Program>& shader) {
     return true;
 }
 
-bool Entity::AddMesh(const string& filename) {
-    mMesh = shared_ptr<Mesh>(new Mesh());
+bool Entity::AddMesh(const string& filename, bool withAdjacency) {
+    mMesh = shared_ptr<Mesh>(new Mesh(withAdjacency));
+    mHasAdjacency = withAdjacency;
 
     return mMesh->LoadMesh(filename);
 }

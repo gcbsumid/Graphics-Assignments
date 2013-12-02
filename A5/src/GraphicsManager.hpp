@@ -20,6 +20,8 @@
 #include "Ground.hpp"
 
 #include "LightingTechnique.hpp"
+#include "NullTechnique.hpp"
+#include "ShadowVolumeTechnique.hpp"
 
 class GraphicsManager {
 public:
@@ -50,9 +52,10 @@ public:
 
 private:
     void RenderSceneIntoDepth();
-    void RenderShadowVolumeIntoStencil();
-    void RenderShadowedScene();
+    void RenderShadowVolumeIntoStencil(glm::vec3& light_pos);
+    void RenderShadowedScene(bool IsPoint);
     void RenderAmbientLight();
+    void RenderNormalScene();
 
     // Pointers to other Managers;
     std::weak_ptr<InputManager> mInput;
@@ -70,6 +73,8 @@ private:
     std::vector<std::shared_ptr<PointLight>> mPointLights;
 
     std::shared_ptr<LightingTechnique> mLightingTechnique;
+    std::shared_ptr<NullTechnique> mNullTech;
+    std::shared_ptr<ShadowVolumeTechnique> mShadowVolTech;
 
     // Shared with the resource manager
     // std::shared_ptr<std::map<std::string, Texture*>> mTextures;

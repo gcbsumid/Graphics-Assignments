@@ -37,7 +37,7 @@ bool CubemapTexture::Load() {
     // cout << "Cubemap Loading." << endl;
     
     glGenTextures(1, &mTextureObj);
-    glBindTexture(mTextureTarget, mTextureObj);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureObj);
     // glTexStorage2D(GL_TEXTURE_CUBE_MAP, 10, GL_RGBA8, 1024, 1024);
 
     Magick::Image* image = NULL;
@@ -69,11 +69,11 @@ bool CubemapTexture::Load() {
         delete image;
     } 
 
-    glTexParameteri(mTextureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(mTextureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(mTextureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(mTextureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(mTextureTarget, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     return true;
 }
@@ -81,9 +81,9 @@ bool CubemapTexture::Load() {
 void CubemapTexture::Bind(shared_ptr<Program> shader) {
     // cout << "Cubemap Bind." << endl;
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(mTextureTarget, mTextureObj);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureObj);
 }
 
 void CubemapTexture::Unbind() {
-    glBindTexture(mTextureTarget, 0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }

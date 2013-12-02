@@ -93,7 +93,7 @@ struct WE_Edge {
 class Mesh
 {
 public:
-    Mesh();
+    Mesh(bool hasAdjacency) ;
 
     virtual ~Mesh();
 
@@ -114,8 +114,9 @@ protected:
 
     void CreateFace(std::vector<WE_Edge*>& edges_list, 
                       std::vector<WE_Face*>& face_list, 
-                      std::vector<WE_Vertex*>& face_vertices,
-                      std::vector<unsigned int>& indices);
+                      std::vector<WE_Vertex*>& face_vertices);
+
+    void GetIndices(std::vector<WE_Face*>& faces, std::vector<unsigned int>& indices);
 
     void GetVertexNormal(WE_Vertex* vert, std::vector<glm::vec3>& normals);
 
@@ -167,6 +168,8 @@ protected:
 
         glm::vec3 mColor;
     };
+
+    bool mHasAdjacency;
 
     GLuint mVertexArray;
     GLuint mBuffers[MAX_BUFFERS];

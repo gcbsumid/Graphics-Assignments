@@ -13,7 +13,8 @@ GroundMesh::GroundMesh(int gridX,
                        int gridZ,
                        double maxHeight,
                        double minHeight) 
-    : mNumIndices(0)
+    : Mesh(true)
+    , mNumIndices(0)
     , mGen(mRD())
     , mRand(-2,2)
     , mGridX(gridX)
@@ -55,7 +56,20 @@ GroundMesh::GroundMesh(int gridX,
             // cout << "Height: " << curHeight << endl;
 
             v->mPosition = glm::vec3((double)curX, curHeight, (double)curZ);
-            v->mTexCoord = glm::vec2(0,0);
+
+            int temp_u = curX, temp_v = curZ;
+            while (temp_u < 0) {
+                temp_u += 3;
+            }
+
+            while (temp_v < 0) {
+                temp_v += 3;
+            }
+            temp_v %= 3;
+            temp_u %= 3;
+
+
+            v->mTexCoord = glm::vec2((double)temp_u / 3.0, (double)temp_v / 3.0);
             v->mIndex = idx++;
             mVertices.push_back(v);
 
@@ -75,15 +89,19 @@ GroundMesh::GroundMesh(int gridX,
             vertices.push_back(mVertices.at(curX*mGridX + curZ));
             vertices.push_back(mVertices.at(curX*mGridX + curZ+1));
             vertices.push_back(mVertices.at((curX+1)*mGridX + curZ+1));
-            CreateFace(mEdges, mFaces, vertices, indices);
+            CreateFace(mEdges, mFaces, vertices);
 
             vertices.clear();
             vertices.push_back(mVertices.at((curX+1)*mGridX + curZ+1));
             vertices.push_back(mVertices.at((curX+1)*mGridX + curZ));
             vertices.push_back(mVertices.at(curX*mGridX + curZ));
-            CreateFace(mEdges, mFaces, vertices, indices);
+            CreateFace(mEdges, mFaces, vertices);
         }
     }
+
+    GetIndices(mFaces, indices);
+
+    // TODO: Get Indices
     // cout << "I'm almost done creating Ground!" << endl;
 
     // Find the Vertex Normal using a weighted average using the vertex angles
@@ -111,12 +129,12 @@ GroundMesh::~GroundMesh() {
 }
 
 double GroundMesh::height(double currentHeight) {
-    // return 0; // Test
-    if (currentHeight >= mMaxHeight || currentHeight <= mMinHeight) {
-        return currentHeight;
-    }
-    // std::cout << "mRand(Gen): " << mRand(mGen) << endl;
-    return (currentHeight + mRand(mGen));
+    return 0; // Test
+    // if (currentHeight >= mMaxHeight || currentHeight <= mMinHeight) {
+    //     return currentHeight;
+    // }
+    // // std::cout << "mRand(Gen): " << mRand(mGen) << endl;
+    // return (currentHeight + mRand(mGen));
 
 
     // double height = 0;
@@ -139,7 +157,8 @@ void GroundMesh::Render(std::shared_ptr<Program> shader) {
     assert(shader->IsInUse());
 
     glBindVertexArray(mVertexArray);
-    glDrawElements(GL_TRIANGLES,
+    // glDrawElements(GL_TRIANGLES,
+    glDrawElements(GL_TRIANGLES_ADJACENCY,
         mNumIndices,
         GL_UNSIGNED_INT,
         NULL);

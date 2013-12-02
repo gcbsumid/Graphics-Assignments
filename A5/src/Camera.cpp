@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include "Camera.hpp"
+#include "Entity.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -16,8 +17,6 @@ Camera::Camera(float fov,
     , mFarPlane(far) 
     , mViewportAspectRatio(aspect)
     , mNeedUpdate(false)
-    , mVerticalAngle(0.0f)
-    , mHorizontalAngle(0.0f)
 {
 }
 
@@ -40,10 +39,6 @@ glm::mat4 Camera::GetPerspMatrix() {
 
 glm::mat4 Camera::GetGLMPerspMatrix() {
     return glm::perspective(mFieldOfView, mViewportAspectRatio, mNearPlane, mFarPlane);
-}
-
-glm::vec3 Camera::GetPos() {
-    return mPosition ;
 }
 
 void Camera::OffsetOrientation(float upAngle, float rightAngle) {

@@ -18,7 +18,8 @@ InputManager::InputManager()
     , mCur(0,0) 
     , mUpAngle(0.0f)
     , mRightAngle(0.0f)
-    , mLightStatus(false) {
+    , mLightStatus(false)
+    , mShadowStatus(false) {
 
 }
 
@@ -35,66 +36,56 @@ void InputManager::HandleKeyPress(double elapsedTime) {
     auto camera = mCamera.lock();
     elapsedTime *= 0.01;
 
+    float speed = 0.05f;
+
+    if(glfwGetKey(GLFW_KEY_LSHIFT)) {
+        speed = 0.125f;
+    }
+
     if (glfwGetKey('S')) {
-        // std::cout << "Moving backwards!" << std::endl;
-        // std::cout << "Pressing S! " << std::endl;
-        glm::vec3 bck = -camera->Forward() * 0.05f;
-        cout << "Backward: " << bck.x << ", " << bck.y << ", " << bck.z << endl;
+        glm::vec3 bck = -camera->Forward() * speed;
+        // cout << "Backward: " << bck.x << ", " << bck.y << ", " << bck.z << endl;
         bck = glm::vec3(bck[0], 0.0, bck[2]);
 
         camera->Translate(bck);
-        // cameraComp->MoveCamera(elapsedTime, -cameraComp->Forward());
     } else if (glfwGetKey('W')) {
-        // std::cout << "Moving forward!" << std::endl;
-        // std::cout << "Pressing W! " << std::endl;
-        glm::vec3 fwd = camera->Forward() * 0.05f;
+        glm::vec3 fwd = camera->Forward() * speed;
         fwd = glm::vec3(fwd[0], 0.0, fwd[2]);
-        cout << "Forward: " << fwd.x << ", " << fwd.y << ", " << fwd.z << endl;
+        // cout << "Forward: " << fwd.x << ", " << fwd.y << ", " << fwd.z << endl;
         camera->Translate(fwd);
-        // cameraComp->MoveCamera(elapsedTime, cameraComp->Forward());
     }
 
     if (glfwGetKey('A')){
-        // std::cout << "Strafing left!" << std::endl;
-        // std::cout << "Pressing A! " << std::endl;
-
-        glm::vec3 left = camera->Right() * 0.05f;
+        glm::vec3 left = camera->Right() * speed;
         left = glm::vec3(left[0], 0.0, left[2]);
-        cout << "left: " << left.x << ", " << left.y << ", " << left.z << endl;
+        // cout << "left: " << left.x << ", " << left.y << ", " << left.z << endl;
         camera->Translate(left);
-        // cameraComp->MoveCamera(elapsedTime, -cameraComp->Right());
     } else if (glfwGetKey('D')){
-        // std::cout << "Strafing right!" << std::endl;
-        // std::cout << "Pressing D! " << std::endl;
-        glm::vec3 right = -camera->Right() * 0.05f;
+        glm::vec3 right = -camera->Right() * speed;
         right = glm::vec3(right[0], 0.0, right[2]);
-        cout << "Right: " << right.x << ", " << right.y << ", " << right.z << endl;
+        // cout << "Right: " << right.x << ", " << right.y << ", " << right.z << endl;
         camera->Translate(right);
-        // cameraComp->MoveCamera(elapsedTime, cameraComp->Right());
     }
 
     if (glfwGetKey('Z')){
-        // std::cout << "Strafing left!" << std::endl;
-        // std::cout << "Pressing A! " << std::endl;
-
-        glm::vec3 up = camera->Up() * 0.05f;
+        glm::vec3 up = camera->Up() * speed;
         up = glm::vec3(0.0, up[1], 0.0);
-        cout << "Up: " << up.x << ", " << up.y << ", " << up.z << endl;
+        // cout << "Up: " << up.x << ", " << up.y << ", " << up.z << endl;
         camera->Translate(up);
-        // cameraComp->MoveCamera(elapsedTime, -cameraComp->Right());
     } else if (glfwGetKey('X')){
-        // std::cout << "Strafing right!" << std::endl;
-        // std::cout << "Pressing D! " << std::endl;
-        glm::vec3 down = -camera->Up() * 0.05f;
+        glm::vec3 down = -camera->Up() * speed;
         down = glm::vec3(0.0, down[1], 0.0);
-        cout << "Down: " << down.x << ", " << down.y << ", " << down.z << endl;
+        // cout << "Down: " << down.x << ", " << down.y << ", " << down.z << endl;
         camera->Translate(down);
-        // cameraComp->MoveCamera(elapsedTime, cameraComp->Right());
     }
 
-    if (glfwGetKey('L')) {
+    if (glfwGetKey('2')) {
         // std::cout << "Pressing L! " << std::endl;
         mLightStatus = !mLightStatus;
+    }
+
+    if (glfwGetKey('1')) {
+        mShadowStatus = !mShadowStatus;
     }
 }
 
@@ -122,4 +113,8 @@ void InputManager::HandleMouseButton(double elapsedTime) {
 
 bool InputManager::GetLightStatus() {
     return mLightStatus;
+}
+
+bool InputManager::GetShadowStatus() {
+    return mShadowStatus;
 }

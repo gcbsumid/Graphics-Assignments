@@ -14,30 +14,7 @@ GraphicsManager::GraphicsManager(SDL_Window* window)
 }
 
 GraphicsManager::~GraphicsManager() {
-    // for (auto& shader : mShaders) {
-    //     delete shader;
-    // }
 }
-
-// int GraphicsManager::LoadShaders(string vert_shader, string frag_shader) {
-//     vector<Shader> shaders;
-
-//     shaders.push_back(Shader::ShaderFromFile(vert_shader, GL_VERTEX_SHADER));
-//     shaders.push_back(Shader::ShaderFromFile(frag_shader, GL_FRAG_SHADER));
-
-//     mShaders.push_back(new Program(shaders));
-//     return (mShaders.size() - 1);
-// }
-
-// void GraphicsManager::SetActiveShader(int id) {
-//     assert(mShaders.size() > id && id >= 0);
-
-//     if (mActiveShader != NULL) {
-//         mActiveShader->Stop();
-//     }
-//     mActiveShader = mShaders.at(id);
-//     mActiveShader->Use();
-// }
 
 bool GraphicsManager::Render() {
     // assert(mActiveShader != NULL);
