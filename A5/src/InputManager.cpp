@@ -19,7 +19,10 @@ InputManager::InputManager()
     , mUpAngle(0.0f)
     , mRightAngle(0.0f)
     , mLightStatus(false)
-    , mShadowStatus(false) {
+    , mShadowStatus(false)
+    , mSubdivision(false)
+    , mFractal(false)
+    , mFlashlight(true) {
 
 }
 
@@ -80,27 +83,55 @@ void InputManager::HandleKeyPress(double elapsedTime) {
     }
 
     if (glfwGetKey('2')) {
-        // std::cout << "Pressing L! " << std::endl;
-        mLightStatus = !mLightStatus;
+        mShadowStatus = false;
     }
 
     if (glfwGetKey('1')) {
-        mShadowStatus = !mShadowStatus;
+        mShadowStatus = true;
     }
+
+    if (glfwGetKey('L')) {
+        mLightStatus = true;
+    }
+    if (glfwGetKey('K')) {
+        mLightStatus = false;
+    }
+
+    if (glfwGetKey('6')) {
+        mFractal = false;
+    }
+
+    if (glfwGetKey('5')) {
+        mFractal = true;
+    }
+
+    if (glfwGetKey('3')) {
+        mSubdivision = true;
+    }
+
+    if (glfwGetKey('4')) {
+        mSubdivision = false;
+    }
+
+    if (glfwGetKey('7')) {
+        mFlashlight = true;
+    }
+
+    if (glfwGetKey('8')) {
+        mFlashlight = false;
+    }
+
 }
 
 void InputManager::HandleMouseMotion(double elapsedTime) {
     int mouseX = 0, mouseY = 0;
     glfwGetMousePos(&mouseX, &mouseY);
-    // std::cout << "mUpAngle " << mUpAngle << std::endl;
-    // std::cout << "mRightAngle " << mRightAngle << std::endl;
     mouseX *= -0.1;
     mouseY *= 0.1;
     if (mouseX || mouseY) {
         auto camera = mCamera.lock();
         camera->OffsetOrientation(mouseY, mouseX);
 
-        // cameraComp->OffsetOrientation(utility::MOUSE_SENSITIVITY * mouseY, utility::MOUSE_SENSITIVITY * mouseX);
         glfwSetMousePos(0,0);
     }
 
@@ -118,3 +149,16 @@ bool InputManager::GetLightStatus() {
 bool InputManager::GetShadowStatus() {
     return mShadowStatus;
 }
+
+bool InputManager::GetSubdivision() {
+    return mSubdivision;
+}
+
+bool InputManager::GetFractal() {
+    return mFractal;
+}
+
+bool InputManager::GetFlashlight() {
+    return mFlashlight;
+}
+

@@ -209,36 +209,3 @@ numIndices: 4332
 Initalizing opengl data!
 Num of Entries: 0
 Num of Entries: 0
-face size: 4332
-edge size: 6574
-mNumIndices size 25992
-mNumIndices size 25992
-Initalizing opengl data!
-Num of Entries: 0
-Num of Entries: 0
-status moving to Attacking. 
-dot is: 0.725778
-I'm attacking! 
-rand_val: 0.555136
-I'm attacking! 
-rand_val: 0.115397
-I'm attacking! 
-rand_val: 0.791318
-I'm attacking! 
-rand_val: 0.903814
-I'm attacking! 
-rand_val: 0.538247
-I'm attacking! 
-rand_val: 0.153188
-status moving to waiting. 
-dot is: 0.662566
-status moving to Attacking. 
-dot is: 0.739331
-I'm attacking! 
-rand_val: 0.157788
-I'm attacking! 
-rand_val: 0.898722
-I'm attacking! 
-rand_val: 0.668108
-status moving to waiting. 
-dot is: 0.236745

@@ -34,11 +34,9 @@ CubemapTexture::~CubemapTexture() {
 }
 
 bool CubemapTexture::Load() {
-    // cout << "Cubemap Loading." << endl;
     
     glGenTextures(1, &mTextureObj);
     glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureObj);
-    // glTexStorage2D(GL_TEXTURE_CUBE_MAP, 10, GL_RGBA8, 1024, 1024);
 
     Magick::Image* image = NULL;
     Magick::Blob blob;
@@ -54,17 +52,8 @@ bool CubemapTexture::Load() {
             delete image;
             return false;
         }
-
-        // glTexSubImage2D(types[i],
-                        // 0,
-                        // 0, 0,
-                        // image->columns(), image->rows(),
-                        // GL_RGBA,
-                        // GL_UNSIGNED_BYTE,
-                        // blob.data());
         glTexImage2D(types[i], 0, GL_RGB, image->columns(), image->rows(), 0, GL_RGBA,
             GL_UNSIGNED_BYTE, blob.data());
-        // std::cout << "length: " << blob.length() << std::endl;
 
         delete image;
     } 
@@ -79,7 +68,6 @@ bool CubemapTexture::Load() {
 }
 
 void CubemapTexture::Bind(shared_ptr<Program> shader) {
-    // cout << "Cubemap Bind." << endl;
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureObj);
 }

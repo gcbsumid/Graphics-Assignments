@@ -102,6 +102,7 @@ public:
     void AttachColor(glm::vec3 color, unsigned int meshID);
 
     virtual void Render(std::shared_ptr<Program>& shader);
+    virtual void RenderEntry(std::shared_ptr<Program>& shader, unsigned int idx);
 
     virtual void Subdivide(int numOfIteration);
 

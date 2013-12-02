@@ -22,6 +22,7 @@
 #include "LightingTechnique.hpp"
 #include "NullTechnique.hpp"
 #include "ShadowVolumeTechnique.hpp"
+#include "StaticTechnique.hpp"
 
 class GraphicsManager {
 public:
@@ -33,6 +34,7 @@ public:
     // void SetActiveShader(int id);
 
     bool Render();
+    bool DisplayStatic();
 
     // These functions generate the component add adds it to the entity passed to it
     // void GenerateLightComp(std::shared_ptr<Entity>, glm::vec3, glm::vec3, float, float);
@@ -49,6 +51,10 @@ public:
     void AttachSpotLights(std::vector<std::shared_ptr<SpotLight>>& spotlight);
     void AttachPointLights(std::vector<std::shared_ptr<PointLight>>& pointLight);
     void AttachGameObject(std::shared_ptr<Entity>);
+    void AttachTreeMatrices(std::shared_ptr<Entity> tree,
+                            std::vector<glm::mat4>& world_matrices,
+                            std::vector<glm::mat4>& rot_matrices, 
+                            std::vector<unsigned int>& types);
 
 private:
     void RenderSceneIntoDepth();
@@ -75,6 +81,14 @@ private:
     std::shared_ptr<LightingTechnique> mLightingTechnique;
     std::shared_ptr<NullTechnique> mNullTech;
     std::shared_ptr<ShadowVolumeTechnique> mShadowVolTech;
+    std::shared_ptr<StaticTechnique> mStaticTech;
+
+    std::shared_ptr<Entity> mTrees;
+    std::vector<glm::mat4> mTreesWorldMatrices;
+    std::vector<glm::mat4> mTreesRotMatrices;
+    std::vector<unsigned int> mTreeTypes;
+
+
 
     // Shared with the resource manager
     // std::shared_ptr<std::map<std::string, Texture*>> mTextures;

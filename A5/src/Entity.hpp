@@ -23,6 +23,7 @@ public:
 
     virtual bool Render(std::shared_ptr<Program>& shader);
     virtual bool RenderMesh(std::shared_ptr<Program>& shader);
+    virtual bool RenderEntry(std::shared_ptr<Program>& shader, unsigned int idx);
 
     virtual void Scale(glm::vec3 scale);
     virtual void Translate(glm::vec3 pos);
@@ -43,6 +44,8 @@ public:
     virtual glm::vec3 GetPos();
     virtual float GetHorizontalRotationAngle() const;
 
+    virtual void Subdivide(int numOfIteration);
+
     // For Debug only
     void DisplayTransform();
 
@@ -62,7 +65,6 @@ protected:
     float mVerticalAngle;
     bool mHasAdjacency;
 
-    // std::vector<glm::mat4> mInstanceMatrices;
     // TODO: Bounding Box
 };
 

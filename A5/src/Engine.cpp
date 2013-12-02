@@ -7,6 +7,7 @@
 #include <GL/glfw.h>
 #include <cmath>
 #include <random>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "Engine.hpp"
 
@@ -17,9 +18,11 @@ const glm::vec2 SCREEN_SIZE(800, 600);
 
 Engine::Engine() {
 
+    mSubdivision = false;
+    mFractal = false;
+
     if (!glfwInit()) 
         throw runtime_error("glfwInit failed.");
-
 
     // open a window in GLFW
     glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -28,9 +31,6 @@ Engine::Engine() {
     glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
     if (!glfwOpenWindow(512, 512, 8, 8, 8, 8, 32, 24, GLFW_WINDOW))
         throw runtime_error("glfwOpenWindow failed. Hardware can't handle OpenGL 3.3");
-
-    cout << "Stencil bits: " << glfwGetWindowParam( GLFW_STENCIL_BITS ) << endl;
-    cout << "Depth bits: " << glfwGetWindowParam( GLFW_DEPTH_BITS ) << endl;
 
     // initialise GLEW
     glewExperimental = GL_TRUE;
@@ -41,10 +41,10 @@ Engine::Engine() {
     if (!GLEW_VERSION_3_3) 
         throw runtime_error("OpenGL 3.3 Api is not available.");
 
-    cout << "OpenGL version: " << glGetString(GL_VERSION) << endl;
-    cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
-    cout << "Vendor: " << glGetString(GL_VENDOR) << endl;
-    cout << "Renderer: " << glGetString(GL_RENDERER) << endl;
+    // cout << "OpenGL version: " << glGetString(GL_VERSION) << endl;
+    // cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+    // cout << "Vendor: " << glGetString(GL_VENDOR) << endl;
+    // cout << "Renderer: " << glGetString(GL_RENDERER) << endl;
 
     glfwDisable(GLFW_MOUSE_CURSOR);
     glfwSetMousePos(0,0);
@@ -59,30 +59,11 @@ Engine::Engine() {
     glDepthFunc(GL_LEQUAL);
     glDepthRange(0.1, 1.0);
 
-    // glEnable(GL_TEXTURE_2D);
-    // glEnable(GL_NORMALIZE);
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
-    // glShadeModel(GL_SMOOTH);
-    // glEnable(GL_COLOR_MATERIAL);
-    // glEnable(GL_DEPTH_TEST); 
-    // glDepthFunc(GL_LESS);   
-
-    // Hide the mouse cursor 
-    // SDL_ShowCursor(0);
-
     CreateManagers();
     CreateObjects();
 }
 
 Engine::~Engine() {
-    // Todo: Delete Entities;
-    // for (auto& ent : mEntities) {
-    //     delete ent.second;
-    // }
-    // SDL_GL_DeleteContext(mMainContext);
-    // SDL_DestroyWindow(mMainWindow);
-    // SDL_Quit();
 }
 
 void Engine::Update(double timeTick) {
@@ -94,7 +75,8 @@ void Engine::Run() {
     auto currentFrame = lastFrame;
     double last_time = 0;
 
-    // bool done = false;
+    mAI->StartPlayingSounds();
+
     while (glfwGetWindowParam(GLFW_OPENED)) {
         currentFrame = chrono::high_resolution_clock::now();
         float cur_time = chrono::duration_cast<chrono::milliseconds>(currentFrame-lastFrame).count() / 1000.0f;
@@ -107,8 +89,18 @@ void Engine::Run() {
         mInput->HandleMouseMotion(tick);
         mInput->HandleMouseButton(tick);
 
+        if (mInput->GetSubdivision() != mSubdivision || mInput->GetFractal() != mFractal) {
+            mSubdivision = mInput->GetSubdivision();
+            mFractal = mInput->GetFractal();
+            mGround->Rebuild(mSubdivision, mFractal);
+        }
+
         try {
-            mGraphics->Render();
+            if (mAI->IsBlurred()) {
+                mGraphics->DisplayStatic();
+            } else {
+                mGraphics->Render();
+            }
         } catch (exception& err) {
             cerr << "Runtime Error: " << err.what() << endl;
             break;
@@ -127,14 +119,9 @@ void Engine::Run() {
 void Engine::CreateManagers() {
     mGraphics = shared_ptr<GraphicsManager>(new GraphicsManager());
     mInput = shared_ptr<InputManager>(new InputManager());
-    // mResource = shared_ptr<ResourceManager>(new ResourceManager());
     mAI = shared_ptr<AIManager>(new AIManager());
 
     mGraphics->LinkInputManager(mInput);
-    // mGraphics->LinkResourceManager(mResource);
-    
-    // mSound = shared_ptr<SoundManager>(new SoundManager());
-    // mPhysics = shared_ptr<PhysicsManager>(new PhysicsManager());
 }
 
 void Engine::CreateObjects() {
@@ -175,7 +162,6 @@ void Engine::CreateLights() {
     s1->mDiffuseIntensity = 0.8f;
     // s1->mAttenuation.mLinear = 0.2f;
     // s1->mAmbientIntensity = 0.2f;
-    // std::cout << "Cutoff: " << s1->mCutOff <<endl;
     mSpotLights.push_back(s1);
 
     mGraphics->AttachSpotLights(mSpotLights);
@@ -195,19 +181,10 @@ void Engine::CreateSkybox() {
         "resources/nightsky_top.jpg",
         "resources/nightsky_front.jpg",
         "resources/nightsky_back.jpg");
-    // "resources/sp3right.jpg",
-        // "resources/sp3left.jpg",
-        // "resources/sp3top.jpg",
-        // "resources/sp3bot.jpg",
-        // "resources/sp3front.jpg",
-        // "resources/sp3back.jpg");
 
     mSkybox->Scale(glm::vec3(200.0f, 200.0f, 200.0f));
-    // mSkybox->Translate(-mCamera->GetPos());
 
     mGround = shared_ptr<Ground>(new Ground(mCamera, 20, 20, 5, -5));
-    // mGround->Translate(glm::vec3(-10,-10,-10));
-    // mGround->Translate(glm::vec3(0,-10,0));
     mGround->Scale(glm::vec3(10.0, 1.0, 10.0));
     mGround->AttachSpotLights(mSpotLights);
     mGround->AttachPointLights(mPointLights);
@@ -221,7 +198,6 @@ void Engine::CreateSlenderman() {
     }
     slender->Scale(glm::vec3(0.5, 0.5, 0.5));
     slender->Translate(glm::vec3(-10, 1.4, -2));
-    // slender->Rotate(glm::vec3(1,0,0), -90);
 
     slender->AttachColor(glm::vec3(0.8f,0.8f,0.8f), 0);
     slender->AttachColor(glm::vec3(0.8f,0.8f,0.8f), 1);
@@ -242,7 +218,6 @@ void Engine::CreateSlenderman() {
         cerr << "Error loading: crate.3ds" << endl;
     }
 
-    // crate->Scale(glm::vec3(0.01, 0.01, 0.01));
     crate->Translate(glm::vec3(-3,1,0));
 
     mEntities.push_back(shared_ptr<Entity>(crate));
@@ -252,35 +227,41 @@ void Engine::CreateSlenderman() {
         cerr << "Error loading: CasaSimples.obj" << endl;
     }
 
-    // house->Scale(glm::vec3(0.01, 0.01, 0.01));
     house->Translate(glm::vec3(-10,2,0));
 
     mEntities.push_back(shared_ptr<Entity>(house));
 
     Entity* tree = new Entity();
-    if (!tree->AddMesh("temp/trees9.3ds", true)) {
+    if (!tree->AddMesh("resources/trees9.3ds", true)) {
         cerr << "Error loading: trees9.3ds" << endl;
     }
 
-    tree->Scale(glm::vec3(0.3, 0.3, 0.3));
-    tree->Rotate(glm::vec3(1,0,0), -90);
-    tree->Translate(glm::vec3(0,0,10));
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_real_distribution<> tree_loc(10, 20);
+    uniform_int_distribution<> tree_type(0,7);
+    uniform_real_distribution<> tree_size(0.3, 1.0);
 
-    mEntities.push_back(shared_ptr<Entity>(tree));
+    vector<glm::mat4> world_matrices;
+    vector<glm::mat4> rot_matrices;
+    vector<unsigned int> tree_types;
+    glm::vec3 curPos(-50.0, -50.0, 0.0);
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            glm::mat4 world_matrix;
+            world_matrix = glm::scale(glm::mat4(), glm::vec3(tree_size(gen), tree_size(gen), tree_size(gen)));
+            world_matrix = world_matrix * glm::rotate(glm::mat4(), -90.0f, glm::vec3(1,0,0));
 
-    // random_device rd;
-    // mt19937 gen(rd());
-    // uniform_real_distribution<> tree_loc(-100, 100);
-    // uniform_real_distribution<> tree_size(0.3, 0.7);
-    // for (int i = 0; i < 30; i++) {
-    //     Entity* tree = new Entity();
-    //     if (!tree->AddMesh("temp/tree_oak.obj", true)) {
-    //         cerr << "Error loading: tree_oak.obj" << endl;
-    //     }
+            glm::mat4 rot_matrix = world_matrix;
+            world_matrix *= glm::translate(glm::mat4(), curPos);
 
-    //     tree->Scale(glm::vec3(tree_size(gen), tree_size(gen), tree_size(gen)));
-    //     tree->Translate(glm::vec3(tree_loc(gen),0,tree_loc(gen)));
+            curPos += glm::vec3(0.0f, tree_loc(gen), 0.0f);
+            world_matrices.push_back(world_matrix);
+            rot_matrices.push_back(rot_matrix);
+            tree_types.push_back(tree_type(gen));
+        }
+        curPos = glm::vec3(-50.0 + tree_loc(gen), -50.0, 0.0f);        
+    }
 
-    //     mEntities.push_back(shared_ptr<Entity>(tree));
-    // }
+    mGraphics->AttachTreeMatrices(shared_ptr<Entity>(tree), world_matrices, rot_matrices, tree_types);
 }

@@ -18,13 +18,15 @@ public:
     void HandleMouseButton(double elapsedTime);
 
 
-
     // void HandleKeyPress(SDL_KeyboardEvent key);
     // void HandleMouseMotion(SDL_MouseMotionEvent motion);
     // void HandleMouseButton(SDL_MouseButtonEvent button);
 
     bool GetLightStatus();
     bool GetShadowStatus();
+    bool GetSubdivision(); 
+    bool GetFractal(); 
+    bool GetFlashlight();
 
 private:
     std::weak_ptr<Camera> mCamera;
@@ -32,7 +34,10 @@ private:
     glm::vec2 mPrev, mCur;
     float mUpAngle, mRightAngle;
     bool mLightStatus;
-    bool mShadowStatus;
+    bool mShadowStatus;     // Dropping the flashlight
+    bool mSubdivision;
+    bool mFractal;
+    bool mFlashlight;
 };
 
 #endif

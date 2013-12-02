@@ -91,30 +91,19 @@ void Camera::SetNearAndFarPlanes(const float nearPlane, const float farPlane) {
     mNeedUpdate = true;
 }
 
-// void Camera::MoveCamera(float elapsedTime, glm::vec3 direction) {
-//     // std::cout << "Elapsed time: " << elapsedTime << std::endl;
-//     float distance = utility::MOVE_SPEED * elapsedTime;
-//     glm::vec3 displacement = distance * direction;
-
-//     // display_vec3("displacement: ", glm::vec3(displacement));
-//     Translate(displacement);
-// }
 
 glm::vec3 Camera::Forward() const {
     glm::vec4 forward = glm::inverse(mRotate) * glm::vec4(0,0,-1,1);
-    // forward = glm::vec4(forward[0], 0.0, forward[2], forward[3]);
     return glm::vec3(forward);
 }
 
 glm::vec3 Camera::Right() const {
     glm::vec4 right = glm::inverse(mRotate) * glm::vec4(1,0,0,1);
-    // right = glm::vec4(right[0], 0.0, right[2], right[3]);
     return glm::vec3(right);
 }
 
 glm::vec3 Camera::Up() const {
     glm::vec4 up = glm::inverse(mRotate) * glm::vec4(0,1,0,1);
-    // up = glm::vec4(0.0, up[1], 0.0, up[3]);
     return glm::vec3(up);
 }
 

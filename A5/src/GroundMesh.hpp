@@ -14,11 +14,10 @@ public:
     GroundMesh(int gridX,
                int gridY,
                double maxHeight,
-               double minHeight);
+               double minHeight,
+               bool withHeight);
 
     virtual ~GroundMesh();
-
-    void RunFractalAlgorithm(int numRecurse);
 
     virtual void Render(std::shared_ptr<Program> shader);
 
@@ -44,7 +43,7 @@ protected:
     int mGridZ;
     double mMinHeight;
     double mMaxHeight;
-
+    bool mWithHeight;
 
 };
 

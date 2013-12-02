@@ -555,6 +555,7 @@ void Mesh::SubdivideMeshEntry(vector<WE_Edge*>& edge_list,
             avg_pos += vert->mPosition;
             avg_texcoord += vert->mTexCoord;
         }
+        std::cout << endl;
         WE_Vertex* face_point = new WE_Vertex();
         face_point->mIndex = total_vertices_size++;
         vertex_list.push_back(face_point);
@@ -564,19 +565,21 @@ void Mesh::SubdivideMeshEntry(vector<WE_Edge*>& edge_list,
         face->mFaceVertex = face_point;
     }
 
+
     // calculate edge points
     for (auto& edge : edge_list) {
         WE_Vertex* edge_point = new WE_Vertex();
         edge_point->mIndex = total_vertices_size++;
         vertex_list.push_back(edge_point);
+
         edge_point->mPosition = (edge->mVert1->mPosition + edge->mVert2->mPosition) * 0.5f;
         edge_point->mTexCoord = (edge->mVert1->mTexCoord + edge->mVert2->mTexCoord) * 0.5f;
 
-        // if not a border edge
-        if (edge->mFaceA && edge->mFaceB) {
+        if (!edge->IsOnBorder()) {
             assert(edge->mFaceA->mFaceVertex && edge->mFaceB->mFaceVertex);
             glm::vec3 face_avg = (edge->mFaceA->mFaceVertex->mPosition + edge->mFaceB->mFaceVertex->mPosition) * 0.5f;
             glm::vec2 face_texcoord_avg = (edge->mFaceA->mFaceVertex->mTexCoord + edge->mFaceB->mFaceVertex->mTexCoord) * 0.5f;
+
             edge_point->mTexCoord = (edge_point->mTexCoord + face_texcoord_avg) * 0.5f;
             edge_point->mPosition = (edge_point->mPosition + face_avg) * 0.5f;
         }
@@ -586,7 +589,6 @@ void Mesh::SubdivideMeshEntry(vector<WE_Edge*>& edge_list,
 
     // calculate vertex updates
     for (unsigned int i = 0; i < original_size; ++i) {
-    // for (auto& vertex : vertex_list) {
         WE_Vertex* vertex = vertex_list.at(i);
         glm::vec3 old_coords = vertex->mPosition;
         glm::vec2 old_texcoords = vertex->mTexCoord;
@@ -613,8 +615,8 @@ void Mesh::SubdivideMeshEntry(vector<WE_Edge*>& edge_list,
             vertex->mTexCoord += old_texcoords;
 
             // Average the shit out
-            vertex->mPosition = (vertex->mPosition) / ((float)border_edges.size()+1);
-            vertex->mTexCoord = (vertex->mTexCoord) / ((float)border_edges.size()+1);
+            vertex->mPosition = (vertex->mPosition) / (float)(border_edges.size()+1);
+            vertex->mTexCoord = (vertex->mTexCoord) / (float)(border_edges.size()+1);
         } else {
             vector<WE_Face*> faces;
 
@@ -635,15 +637,17 @@ void Mesh::SubdivideMeshEntry(vector<WE_Edge*>& edge_list,
             glm::vec3 avg_edge_point;
             glm::vec2 avg_edge_texcoord;
             for (auto& edge : vertex->mEdges) {
-                assert(edge->mMidPointVertex);
-                avg_edge_point += edge->mMidPointVertex->mPosition;
-                avg_edge_texcoord += edge->mMidPointVertex->mTexCoord;
+                glm::vec3 midpoint = (edge->mVert1->mPosition + edge->mVert2->mPosition) * 0.5f;
+                glm::vec2 midpoint_texcoord = (edge->mVert1->mTexCoord + edge->mVert2->mTexCoord) * 0.5f;
+
+                avg_edge_point += midpoint;
+                avg_edge_texcoord += midpoint_texcoord;
             }
             avg_edge_point = avg_edge_point / ((float)vertex->mEdges.size());
             avg_edge_texcoord = avg_edge_texcoord / ((float)vertex->mEdges.size());
 
             // get the updated point from these smart men named Catmull and Clark
-            vertex->mPosition = old_coords * ((numOfFaces-3)/numOfFaces);
+            vertex->mPosition = old_coords * (numOfFaces-3)/(numOfFaces);
             vertex->mPosition += avg_face_point * (1.0f / numOfFaces);
             vertex->mPosition += avg_edge_point * (2.0f / numOfFaces);
             vertex->mTexCoord = old_texcoords * ((numOfFaces-3)/numOfFaces);
@@ -653,9 +657,7 @@ void Mesh::SubdivideMeshEntry(vector<WE_Edge*>& edge_list,
     }
 
     // delete all the current mEdges attached to all vertices
-    for (unsigned int i = 0; i < original_size; ++i) {
-        WE_Vertex* vertex = vertex_list.at(i);
-
+    for (auto& vertex : vertex_list) {
         vertex->mEdges.clear();
     }
 
@@ -665,48 +667,73 @@ void Mesh::SubdivideMeshEntry(vector<WE_Edge*>& edge_list,
     vector<WE_Face*> new_faces;
     // Now I have all the points that I need. I should do something with it.
     for (auto& face : face_list) {
-        for (auto& edge : face->mEdges) {
+        // for (auto& edge : face->mEdges) {
+        for (unsigned int i = 0; i < face->mEdges.size(); ++i) {
+            WE_Edge* edge1 = face->mEdges.at(i);
+            WE_Edge* edge2 = face->mEdges.at((i+1) % face->mEdges.size());
+
+            WE_Vertex* common_vert;
+            if (edge1->mVert1 == edge2->mVert1) {
+                common_vert = edge1->mVert1;
+            } else if (edge1->mVert2 == edge2->mVert2) {
+                common_vert = edge1->mVert2;
+            } else if (edge1->mVert1 == edge2->mVert2) {
+                common_vert = edge1->mVert1;
+            } else {
+                common_vert = edge1->mVert2;
+            }
 
             vector<WE_Vertex*> face_vertices;
-            if (edge->mFaceA == face) {
-                face_vertices.push_back(edge->mMidPointVertex);
-                face_vertices.push_back(face->mFaceVertex);
-                face_vertices.push_back(edge->mVert1);
+            face_vertices.push_back(face->mFaceVertex);
+            face_vertices.push_back(edge1->mMidPointVertex);
+            face_vertices.push_back(common_vert);
+            CreateFace(new_edges, new_faces, face_vertices);
+
+            face_vertices.clear();
+
+            face_vertices.push_back(common_vert);
+            face_vertices.push_back(edge2->mMidPointVertex);
+            face_vertices.push_back(face->mFaceVertex);
+            CreateFace(new_edges, new_faces, face_vertices);
+
+            // vector<WE_Vertex*> face_vertices;
+            // if (edge->mFaceA == face) {
+            //     face_vertices.push_back(edge->mMidPointVertex);
+            //     face_vertices.push_back(face->mFaceVertex);
+            //     face_vertices.push_back(edge->mVert1);
                 
-                CreateFace(new_edges,
-                           new_faces,
-                           face_vertices);
+            //     CreateFace(new_edges,
+            //                new_faces,
+            //                face_vertices);
 
-                face_vertices.clear();
+            //     face_vertices.clear();
 
-                face_vertices.push_back(edge->mVert2);
-                face_vertices.push_back(face->mFaceVertex);
-                face_vertices.push_back(edge->mMidPointVertex);
+            //     face_vertices.push_back(edge->mVert2);
+            //     face_vertices.push_back(face->mFaceVertex);
+            //     face_vertices.push_back(edge->mMidPointVertex);
 
-                CreateFace(new_edges,
-                           new_faces,
-                           face_vertices);
-            } else if (edge->mFaceB == face) {
-                face_vertices.push_back(face->mFaceVertex);
-                face_vertices.push_back(edge->mMidPointVertex);
-                face_vertices.push_back(edge->mVert1);
+            //     CreateFace(new_edges,
+            //                new_faces,
+            //                face_vertices);
+            // } else if (edge->mFaceB == face) {
+            //     face_vertices.push_back(face->mFaceVertex);
+            //     face_vertices.push_back(edge->mMidPointVertex);
+            //     face_vertices.push_back(edge->mVert1);
 
-                CreateFace(new_edges,
-                           new_faces,
-                           face_vertices);
+            //     CreateFace(new_edges,
+            //                new_faces,
+            //                face_vertices);
 
-                face_vertices.clear();
+            //     face_vertices.clear();
 
-                face_vertices.push_back(edge->mVert2);
-                face_vertices.push_back(edge->mMidPointVertex);
-                face_vertices.push_back(face->mFaceVertex);
+            //     face_vertices.push_back(edge->mVert2);
+            //     face_vertices.push_back(edge->mMidPointVertex);
+            //     face_vertices.push_back(face->mFaceVertex);
 
-                CreateFace(new_edges,
-                           new_faces,
-                           face_vertices);
-            } else {
-                throw runtime_error("Creating a new face. not A or B.");
-            }
+            //     CreateFace(new_edges,
+            //                new_faces,
+            //                face_vertices);
+            // } 
         }
     }
 

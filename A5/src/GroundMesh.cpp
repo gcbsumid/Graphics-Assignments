@@ -12,7 +12,8 @@ using namespace std;
 GroundMesh::GroundMesh(int gridX,
                        int gridZ,
                        double maxHeight,
-                       double minHeight) 
+                       double minHeight,
+                       bool withHeight) 
     : Mesh(true)
     , mNumIndices(0)
     , mGen(mRD())
@@ -21,6 +22,7 @@ GroundMesh::GroundMesh(int gridX,
     , mGridZ(gridZ)
     , mMinHeight(minHeight)
     , mMaxHeight(maxHeight)
+    , mWithHeight(withHeight)
 {
     assert(gridX > 0 && gridZ > 0);
 
@@ -129,28 +131,27 @@ GroundMesh::~GroundMesh() {
 }
 
 double GroundMesh::height(double currentHeight) {
-    return 0; // Test
-    // if (currentHeight >= mMaxHeight || currentHeight <= mMinHeight) {
-    //     return currentHeight;
-    // }
-    // // std::cout << "mRand(Gen): " << mRand(mGen) << endl;
-    // return (currentHeight + mRand(mGen));
+    // return 0; // Test
+    if (mWithHeight) {
+        double height = 0;
+        double var = mRand(mGen);
+        if (var > 1.0) {
+            height = 3.0;
+        } else if (var < -1.0) {
+            height = -3.0;
+        }
 
+        return height;
 
-    // double height = 0;
-    // double var = mRand(mGen);
-    // if (var > 1.0) {
-    //     height = 3.0;
-    // } else if (var < -1.0) {
-    //     height = -3.0;
-    // }
+        // if (currentHeight >= mMaxHeight || currentHeight <= mMinHeight) {
+        //     return currentHeight;
+        // }
+        // // std::cout << "mRand(Gen): " << mRand(mGen) << endl;
+        // return (currentHeight + mRand(mGen));
+    } else {
+        return 0;
 
-    // return height;
-}
-
-
-void GroundMesh::RunFractalAlgorithm(int numRecurse) {
-    // TODO: This algorithm
+    }
 }
 
 void GroundMesh::Render(std::shared_ptr<Program> shader) {

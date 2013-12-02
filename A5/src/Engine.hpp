@@ -66,6 +66,9 @@ private:
     std::vector<std::shared_ptr<SpotLight>> mSpotLights;
     std::vector<std::shared_ptr<PointLight>> mPointLights;
 
+    bool mSubdivision;
+    bool mFractal;
+
     // SDL_Window* mMainWindow;
     // SDL_GLContext mMainContext;
 

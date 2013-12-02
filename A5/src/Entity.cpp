@@ -144,6 +144,12 @@ bool Entity::RenderMesh(std::shared_ptr<Program>& shader) {
     return true;
 }
 
+bool Entity::RenderEntry(std::shared_ptr<Program>& shader, unsigned int idx) {
+    mMesh->RenderEntry(shader, idx);
+    return true;
+}
+
+
 bool Entity::AddMesh(const string& filename, bool withAdjacency) {
     mMesh = shared_ptr<Mesh>(new Mesh(withAdjacency));
     mHasAdjacency = withAdjacency;
@@ -153,4 +159,8 @@ bool Entity::AddMesh(const string& filename, bool withAdjacency) {
 
 void Entity::AttachColor(glm::vec3 color, unsigned int meshID) {
     mMesh->AttachColor(color, meshID);
+}
+
+void Entity::Subdivide(int numOfIteration) {
+    mMesh->Subdivide(numOfIteration);
 }

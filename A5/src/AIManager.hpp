@@ -19,7 +19,12 @@ public:
     void Action(double);
     void AttachSlender(std::shared_ptr<Entity> slender);
     void AttachCamera(std::shared_ptr<Entity> camera);
+    bool IsBlurred();
+    void StartPlayingSounds();
 private:
+
+    void RotateSlender(bool isSameDir);
+
     std::vector<std::weak_ptr<AIComp>> mComponents;    
     std::shared_ptr<Entity> mSlender;
     std::shared_ptr<Camera> mCamera;
@@ -39,7 +44,7 @@ private:
     int mEerieSound;
     int mIndicatorSound;
     int mStaticSound;
-
+    bool mIsBlurred;
 };
 
 #endif
