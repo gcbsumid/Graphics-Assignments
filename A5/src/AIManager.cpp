@@ -77,7 +77,6 @@ void AIManager::Action(double tick) {
             glm::vec3 camera_fwd = glm::normalize(mCamera->Forward());
 
             if (glm::dot(slender_dir, camera_fwd) > (cos(0.25 * M_PI))) {
-                cout << "status moving to Attacking. \ndot is: " << glm::dot(slender_dir, camera_fwd) << endl;
                 mState = Attacking;
             } else if (mTimer > 2.0) {
                 mTimer -= 2.0;
@@ -88,18 +87,18 @@ void AIManager::Action(double tick) {
         case Attacking: {
             SM.PlaySound(mStaticSound);
 
-            if(mTimer > 0.6 && mTimer < 0.9) {
+            if(mTimer > 0.9 && mTimer < 1.2) {
                 mIsBlurred = true;
             } else {
                 mIsBlurred = false;
             }
 
-            if (mTimer > 1.0) {
-                mTimer -= 1.0;
+            if (mTimer > 1.2) {
+                mTimer -= 1.2;
                 RotateSlender(false);
                 random_device rd;
                 mt19937 gen(rd());
-                uniform_real_distribution<> dist(0.2, 1);
+                uniform_real_distribution<> dist(0, .7);
                 glm::vec3 slender_dir = mCamera->GetPos() - mSlender->GetPos();
                 slender_dir += glm::vec3(dist(gen), 0.0, dist(gen));
 

@@ -10,7 +10,7 @@ CXXFLAGS += $(DEBUGFLAGS)
 CXX = g++
 # CXX = clang++
 
-MAIN = test 
+MAIN = slenderman 
 
 all: $(MAIN)
 

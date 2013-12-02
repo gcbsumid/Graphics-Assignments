@@ -50,4 +50,5 @@ bool StaticTechnique::Render() {
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
+    return true;
 }

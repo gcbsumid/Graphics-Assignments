@@ -14,7 +14,7 @@
 using namespace std;
 
 // TODO: Implement object creations
-const glm::vec2 SCREEN_SIZE(800, 600);
+const glm::vec2 SCREEN_SIZE(1900, 1200);
 
 Engine::Engine() {
 
@@ -29,7 +29,7 @@ Engine::Engine() {
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
     glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
-    if (!glfwOpenWindow(512, 512, 8, 8, 8, 8, 32, 24, GLFW_WINDOW))
+    if (!glfwOpenWindow(SCREEN_SIZE.x, SCREEN_SIZE.y, 8, 8, 8, 8, 32, 24, GLFW_WINDOW))
         throw runtime_error("glfwOpenWindow failed. Hardware can't handle OpenGL 3.3");
 
     // initialise GLEW
@@ -126,7 +126,7 @@ void Engine::CreateManagers() {
 
 void Engine::CreateObjects() {
     // Create the Camera
-    mCamera = shared_ptr<Camera>(new Camera());
+    mCamera = shared_ptr<Camera>(new Camera(90.0f, 0.1f, 100.0f, (float)SCREEN_SIZE.x/(float)SCREEN_SIZE.y));
     mGraphics->AttachCamera(mCamera);
     mInput->AttachCamera(mCamera);
     mAI->AttachCamera(mCamera);

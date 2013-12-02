@@ -51,8 +51,6 @@ glm::mat4 Entity::GetTransform() {
     mTransform = glm::scale(glm::mat4(), mScale);
     mTransform = mTransform * mRotate;
     mTransform = glm::translate(glm::mat4(), mPosition) * mTransform;
-    // mTransform = 
-    // mScale * mRotate * 
     return mTransform;
 }
 
@@ -61,13 +59,10 @@ void Entity::Scale(glm::vec3 scale) {
 }
 
 void Entity::Translate(glm::vec3 pos) {
-    // cout << "Moving towards: " << pos.x << ", " << pos.y << ", " << pos.z << endl;
     mPosition += pos;
-    // cout << "Position is now at: " << mPosition.x << ", " << mPosition.y << ", " << mPosition.z << endl;
 }
 
 void Entity::Rotate(char axis, float angle) {
-    // angle = (angle/180 * M_PI);
     glm::mat4 r; 
 
     if (axis == 'x') {

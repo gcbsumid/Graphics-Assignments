@@ -49,10 +49,7 @@ private:
     float mViewportAspectRatio;
     glm::mat4 mViewMatrix; // Perspective projection
 
-    // glm::vec3 mPosition; 
     bool mNeedUpdate;
-
-    // float mHorizontalAngle;
 };
 
 #endif

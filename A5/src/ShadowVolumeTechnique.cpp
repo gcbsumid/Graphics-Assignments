@@ -8,22 +8,18 @@ ShadowVolumeTechnique::ShadowVolumeTechnique() {
     if (!AddShader("./shadow.vert", GL_VERTEX_SHADER)) {
         throw runtime_error("Can't load shadow volume vertex shader.");
     }
-    cout << "Loaded shadow vs." << endl;
 
     if (!AddShader("./shadow.geom", GL_GEOMETRY_SHADER)) {
         throw runtime_error("Can't load shadow volume geometric shader.");
     }
-    cout << "Loaded shadow gs." << endl;
 
     if (!AddShader("./shadow.frag", GL_FRAGMENT_SHADER)) {
         throw runtime_error("Can't load shadow volume fragment shader.");
     }
-    cout << "Loaded shadow fs." << endl;
 
     if (!CompileShaders()) {
         throw runtime_error("Can't compile shadow volume shader.");
     }
-    cout << "compiled program." << endl;
 
     mPerspMatrixLocation = mProgram->Uniform("persp_matrix");
     mModelMatrixLocation = mProgram->Uniform("model_matrix");

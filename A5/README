@@ -1,0 +1,43 @@
+Name: Glenn Christian Sumido
+Student Number: 203 748 63
+User-id: gcbsumid
+Assignment 5 (Project)
+
+The final executable was compiled on: 
+
+How to compile: 
+make
+
+How to invoke my program
+./slenderman
+
+Controls:
+W - forward
+S - backward
+A - left strafe
+D - right strafe
+Z - move camera up
+X - move camera down
+
+1 - Turn on shadows 
+2 - Turn off shadows
+3 - Turn on subdivision surfaces
+4 - Turn off subdivision surfaces
+5 - Turn on Fractal mountain
+6 - Turn off fractal mountain
+7 - Pick up flashlight
+8 - Drop flashlight
+
+L - turn on extra lighting
+K - turn off extra lighting 
+
+Extra Features:
+
+Notes:
+- Turning on shadows will cause the framerate to drop because there are so
+ many objects in the game (trees specifically) and shadow volume is a multi-
+ pass rendering algorithm.
+- Instead of shadow maps, I implemented Shadow volumes because I thought I'd
+ learn more
+- With the shadows on, there is a large amount of Z-fighting. I tried a lot of
+ things but they did not fix it. Will fix this in the future.

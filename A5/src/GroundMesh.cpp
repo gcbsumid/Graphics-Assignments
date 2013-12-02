@@ -31,7 +31,6 @@ GroundMesh::GroundMesh(int gridX,
     vector<glm::vec2> texcoords;
     vector<unsigned int> indices;
 
-    // TODO: get the normal for each vertex
     double curHeight = 0;
     double idx = 0;
 
@@ -41,21 +40,13 @@ GroundMesh::GroundMesh(int gridX,
     int maxX = gridX/2;
     int maxZ = gridZ/2;
 
-    // int x_idx = 0;
-    // int z_idx = 0;
     for (int curX = minX, x_idx = 0; curX < maxX; ++curX, ++x_idx) {
         for (int curZ = minZ, z_idx = 0; curZ < maxZ; ++curZ, ++z_idx) {
             WE_Vertex* v = new WE_Vertex();
 
-            // cout << "x_idx: " << x_idx << endl;
-            // cout << "z_idx: " << z_idx << endl;
-
-            // cout << "x: " << ((x_idx == 0) ? 0 : ((x_idx-1)*mGridX + z_idx)) << endl;
-            // cout << "z: " << ((z_idx == 0) ? 0 : ((x_idx * mGridX) + (z_idx - 1))) << endl;
             double prevXHeight = (x_idx == 0) ? 0 : mVertices.at((x_idx-1)*mGridX + z_idx)->mPosition.y;
             double prevYHeight = (z_idx == 0) ? 0 : mVertices.at((x_idx * mGridX) + (z_idx - 1))->mPosition.y;
             curHeight = height((prevXHeight + prevYHeight)/2);
-            // cout << "Height: " << curHeight << endl;
 
             v->mPosition = glm::vec3((double)curX, curHeight, (double)curZ);
 
@@ -74,8 +65,6 @@ GroundMesh::GroundMesh(int gridX,
             v->mTexCoord = glm::vec2((double)temp_u / 3.0, (double)temp_v / 3.0);
             v->mIndex = idx++;
             mVertices.push_back(v);
-
-            // cout << v->mIndex << ": " << v->mPosition.x << ", " << v->mPosition.y << ", " << v->mPosition.z << endl;
 
             positions.push_back(v->mPosition);
             texcoords.push_back(v->mTexCoord);
@@ -103,9 +92,6 @@ GroundMesh::GroundMesh(int gridX,
 
     GetIndices(mFaces, indices);
 
-    // TODO: Get Indices
-    // cout << "I'm almost done creating Ground!" << endl;
-
     // Find the Vertex Normal using a weighted average using the vertex angles
     for (auto& vert : mVertices) {
         GetVertexNormal(vert, normals);
@@ -113,14 +99,6 @@ GroundMesh::GroundMesh(int gridX,
 
     // OpenGL-ize all data
     mNumIndices = indices.size();
-    cout << "numIndices: " << mNumIndices << endl;
-
-    // int i = 0;
-    // for (auto n : normals) {
-    //     // cout << i++ << " Position: " << p.x << ", " << p.y << ", " << p.z << endl;
-    //     cout << i++ << " Normals: " << p.x << ", " << p.y << ", " << p.z << endl;
-    //     // cout << "index: " << i << endl;
-    // }
 
     InitOpenGLData(indices, positions, normals, texcoords);
 }
@@ -131,7 +109,6 @@ GroundMesh::~GroundMesh() {
 }
 
 double GroundMesh::height(double currentHeight) {
-    // return 0; // Test
     if (mWithHeight) {
         double height = 0;
         double var = mRand(mGen);
@@ -143,6 +120,8 @@ double GroundMesh::height(double currentHeight) {
 
         return height;
 
+        // This following would give a smoother transission but would look too
+        // close to the subdivided surface
         // if (currentHeight >= mMaxHeight || currentHeight <= mMinHeight) {
         //     return currentHeight;
         // }
@@ -158,7 +137,6 @@ void GroundMesh::Render(std::shared_ptr<Program> shader) {
     assert(shader->IsInUse());
 
     glBindVertexArray(mVertexArray);
-    // glDrawElements(GL_TRIANGLES,
     glDrawElements(GL_TRIANGLES_ADJACENCY,
         mNumIndices,
         GL_UNSIGNED_INT,
@@ -180,10 +158,6 @@ void GroundMesh::Subdivide(int numOfIteration) {
     for (int i = 0; i < numOfIteration; ++i) {
         SubdivideMeshEntry(mEdges, mFaces, mVertices, indices);
 
-        cout << "face size: " << mFaces.size() << endl;
-        cout << "edge size: " << mEdges.size() << endl;
-        cout << "mNumIndices size " << indices.size() << endl;
-
         if (i != numOfIteration-1) {
             indices.clear();
             continue;
@@ -195,7 +169,6 @@ void GroundMesh::Subdivide(int numOfIteration) {
             texcoords.push_back(vert->mTexCoord);
         }
         mNumIndices = indices.size();
-        cout << "mNumIndices size " << mNumIndices << endl;
     }
 
     InitOpenGLData(indices, positions, normals, texcoords);

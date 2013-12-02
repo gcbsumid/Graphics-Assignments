@@ -19,16 +19,12 @@ using namespace std;
 
 void WE_Vertex::GetFaces(std::vector<WE_Face*>& faces) {
 
-    // cout << endl;
     for (auto& edge : mEdges) {
         if (edge->mVert1 == this && edge->mFaceA) {
             faces.push_back(edge->mFaceA);
-            // cout << mIndex << ": " << edge->mFaceA->mFaceNormal.x << ", " << edge->mFaceA->mFaceNormal.y << ", " << edge->mFaceA->mFaceNormal.z << endl;
         } else if (edge->mVert2 == this && edge->mFaceB) {
             faces.push_back(edge->mFaceB);
-            // cout << mIndex << ": " << edge->mFaceB->mFaceNormal.x << ", "<< edge->mFaceB->mFaceNormal.y << ", "<< edge->mFaceB->mFaceNormal.z << endl;
         } else {
-            // cout << mIndex << endl;
         }
     }
 }
@@ -149,7 +145,6 @@ bool Mesh::LoadMesh(const string& filename) {
     Clear();
 
     Assimp::Importer importer;
-    std::cout << "Loading: " << filename << endl;
 
     const aiScene* scene = importer.ReadFile(filename.c_str(), 
         aiProcess_Triangulate |
@@ -161,7 +156,6 @@ bool Mesh::LoadMesh(const string& filename) {
         return InitFromScene(scene, filename);
     } 
 
-    cout << "Error parsing '" << filename << ": " << importer.GetErrorString() << endl;
     return false;
 }
 
@@ -173,15 +167,12 @@ bool Mesh::InitFromScene(const aiScene* scene, const string& filename) {
     vector<glm::vec3> normals;
     vector<glm::vec2> texcoords;
 
-    cout << "number of meshes: " << scene->mNumMeshes << endl;
 
     // Initialize the meshes in the scene one by one
     unsigned int totalNumOfVertices = 0;
     unsigned int totalNumOfIndices = 0;
     for (unsigned int i = 0; i < mEntries.size(); ++i) {
         const aiMesh* mesh = scene->mMeshes[i];
-        cout << "Name of Mesh: " << mesh->mName.C_Str() << endl;
-        cout << "Number of Vertices: " << mesh->mNumVertices << endl;
         InitMesh(i, mesh, positions, normals, texcoords, indices);
         mEntries.at(i).mBaseVertex = totalNumOfVertices;
         mEntries.at(i).mBaseIndex = totalNumOfIndices;
@@ -190,14 +181,10 @@ bool Mesh::InitFromScene(const aiScene* scene, const string& filename) {
         totalNumOfVertices += scene->mMeshes[i]->mNumVertices;
         totalNumOfIndices += mEntries.at(i).mNumIndices;    
 
-        cout << "Number of Faces: " << scene->mMeshes[i]->mNumFaces << endl;
-        cout << "Number of Indices: " << mEntries.at(i).mNumIndices << endl;
-        cout << "Number of desired indices: " << scene->mMeshes[i]->mNumFaces * 6 << endl;
     }
 
     // Set Materials
     if (!InitMaterials(scene, filename)) {
-        cout << "I'm return false. " << endl;
         return false;
     }
 
@@ -210,11 +197,9 @@ bool Mesh::InitOpenGLData(std::vector<unsigned int>& indices,
                           std::vector<glm::vec2>& texcoords) {
     assert(positions.size() == normals.size() && normals.size() == texcoords.size());
 
-    cout << "Initalizing opengl data!" << endl;
     Clear();
 
     glGenBuffers(MAX_BUFFERS, mBuffers);
-    cout << "Num of Entries: " << mEntries.size() << endl;
     // Generate Vertex Array  
     glGenVertexArrays(1, &mVertexArray);
     glBindVertexArray(mVertexArray);
@@ -231,7 +216,6 @@ bool Mesh::InitOpenGLData(std::vector<unsigned int>& indices,
 
     // Generate buffers for normals
     // for(auto& normal : normals) {
-    //     cout << "Normal: " << normal.x << ", " << normal.y << ", " << normal.z << endl;
     // }
     glBindBuffer(GL_ARRAY_BUFFER, mBuffers[NORMAL_VB]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)* normals.size(), &normals[0], GL_STATIC_DRAW);
@@ -244,7 +228,6 @@ bool Mesh::InitOpenGLData(std::vector<unsigned int>& indices,
     glEnableVertexAttribArray(TEXCOORD_LOCATION);
     glVertexAttribPointer(TEXCOORD_LOCATION, 2, GL_FLOAT, GL_FALSE, 0, 0);    
 
-    cout << "Num of Entries: " << mEntries.size() << endl;
 
     return (glGetError() == GL_NO_ERROR);
 }
@@ -264,8 +247,6 @@ void Mesh::InitMesh(unsigned int index,
 
     const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 
-    // cout << "Buffer Size: " << mesh->mNumVertices << endl;
-    // cout << "Indices Size: " << mesh->mNumFaces*3 << endl;
 
     // Set mVertices for the mesh
     for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
@@ -284,17 +265,14 @@ void Mesh::InitMesh(unsigned int index,
         normal.push_back(v->mAvgNormal);
         texcoord.push_back(v->mTexCoord);
 
-        // cout << "Vertex Normal: " << v_normal->x << ", " << v_normal->y  << ", " << v_normal->z << endl;
     }
 
-    // cout << "Next Mesh: " << endl << endl;
 
     // Set mFaces and mEdges for the mesh
     unsigned int prevIndicesSize = indices.size();
 
     for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
         const aiFace& face = mesh->mFaces[i];
-        // cout << face.mNumIndices << endl;
         assert(face.mNumIndices == 3); // After being triangulated
 
         vector<WE_Vertex*> face_vertices;       
@@ -318,8 +296,6 @@ void Mesh::InitMesh(unsigned int index,
     }
 
     mEntries.at(index).mNumIndices = indices.size() - prevIndicesSize;
-    cout << "num of entries: " << mEntries.size() << endl;
-    cout << "Indices size: " << mEntries.at(index).mNumIndices << endl;
 }
 
 
@@ -343,7 +319,6 @@ bool Mesh::InitMaterials(const aiScene* scene, const string& filename)
     bool Ret = true;
 
     // Initialize the materials
-    cout << "number of materials: " << scene->mNumMaterials << endl;
 
     for (unsigned int i = 0 ; i < scene->mNumMaterials ; i++) {
         const aiMaterial* material = scene->mMaterials[i];
@@ -363,15 +338,8 @@ bool Mesh::InitMaterials(const aiScene* scene, const string& filename)
                     mTextures[i] = NULL;
                     Ret = false;
                 }
-                else {
-                    printf("Loaded texture '%s' at index %i\n", fullPath.c_str(), (int)i);
-                }
-            } else {
-                cout << "No Texture!" << endl;
             }
-        } else { 
-            cout << "No Texture at all!" << endl;
-        }
+        } 
     }
 
     return Ret;
@@ -389,12 +357,10 @@ void Mesh::Render(std::shared_ptr<Program>& shader)
     for (unsigned int i = 0 ; i < mEntries.size() ; i++) {
         const unsigned int materialIndex = mEntries[i].mMaterialIndex;
 
-        // cout << "Material Index: " << materialIndex << endl;
         if (materialIndex < mTextures.size() && mTextures.at(materialIndex)) {
             mTextures.at(materialIndex)->Bind(shader);
         }
 
-        // TODO Fix this later
         if (mEntries.at(i).mColor != glm::vec3() && shader->DoesUniformExistInShader("mat_color")) {
             glUniform3f(shader->Uniform("mat_color"), mEntries.at(i).mColor.x,
                 mEntries.at(i).mColor.y, mEntries.at(i).mColor.z);
@@ -426,7 +392,6 @@ void Mesh::RenderEntry(std::shared_ptr<Program>& shader, unsigned int idx) {
     
     const unsigned int materialIndex = mEntries.at(idx).mMaterialIndex;
 
-    // cout << "Material Index: " << materialIndex << endl;
     if (materialIndex < mTextures.size() && mTextures.at(materialIndex)) {
         mTextures.at(materialIndex)->Bind(shader);
     }
@@ -555,7 +520,6 @@ void Mesh::SubdivideMeshEntry(vector<WE_Edge*>& edge_list,
             avg_pos += vert->mPosition;
             avg_texcoord += vert->mTexCoord;
         }
-        std::cout << endl;
         WE_Vertex* face_point = new WE_Vertex();
         face_point->mIndex = total_vertices_size++;
         vertex_list.push_back(face_point);
@@ -661,7 +625,6 @@ void Mesh::SubdivideMeshEntry(vector<WE_Edge*>& edge_list,
         vertex->mEdges.clear();
     }
 
-    // cout << "vertex_list size: " << vertex_list.size() << endl;
 
     vector<WE_Edge*> new_edges;
     vector<WE_Face*> new_faces;
@@ -842,35 +805,23 @@ void Mesh::CreateFace(vector<WE_Edge*>& edges_list,
         face->mEdges.at(2)->mNextB = face->mEdges.at(0);
     }
 
-    // cout << "mEdges size: " << face->mEdges.size() << endl;
 
     glm::vec3 firstEdgeVector = face_vertices.at(1)->mPosition - face_vertices.at(0)->mPosition; 
     glm::vec3 lastEdgeVector = face_vertices.at(2)->mPosition - face_vertices.at(0)->mPosition;
-    // cout << "firstEdgeVector: " << firstEdgeVector.x << ", " << firstEdgeVector.y << ", " << firstEdgeVector.z << endl;
-    // cout << "lastEdgeVector: " << lastEdgeVector.x << ", " << lastEdgeVector.y << ", " << lastEdgeVector.z << endl;
     face->mFaceNormal = glm::cross(firstEdgeVector, lastEdgeVector);
-    // cout << "number of edges in face: " << face->mEdges.size() << endl;
     // glm::vec3 temp = glm::normalize(face->mFaceNormal);
-    // cout << "Normal: " << temp.x << ", " << temp.y << ", " << temp.z << endl;
 }
 
 void Mesh::GetIndices(vector<WE_Face*>& faces, vector<unsigned int>& indices) {
     if (mHasAdjacency) {
-        // cout << "num of faces: " << faces.size() << endl;
         for (auto& face : faces) {
             // Get vertices
             std::vector<WE_Vertex*> vertices;
             face->GetVertices(vertices);
 
-            // cout << "Vertices size: " << vertices.size() << endl;
-            // cout << "Vertex index 0: " << vertices.at(0)->mIndex << endl;
-            // cout << "Vertex index 1: " << vertices.at(1)->mIndex << endl;
-            // cout << "Vertex index 2: " << vertices.at(2)->mIndex << endl;
-            // cout << "Edge size: " << face->mEdges.size() << endl;
             assert(face->mEdges.size() == vertices.size());
 
             for (int i = 0; i < (int)vertices.size(); ++i) {
-                // cout << "index " << i*2 << ": " <<  vertices.at(i)->mIndex << endl;
                 indices.push_back(vertices.at(i)->mIndex);
 
                 int nxt_idx = (i+1) % (int)vertices.size();
@@ -878,12 +829,8 @@ void Mesh::GetIndices(vector<WE_Face*>& faces, vector<unsigned int>& indices) {
                 WE_Vertex* vert1 = vertices.at(i);
                 WE_Vertex* vert2 = vertices.at(nxt_idx);
                 for (auto& face_edge : face->mEdges) {
-                    // cout << "edge vert1: " << face_edge->mVert1->mIndex << endl;
-                    // cout << "edge vert2: " << face_edge->mVert2->mIndex << endl;
                     // if (face_edge->mFaceA == face) {
-                    //     cout << "face = A" << endl;
                     // } else {
-                    //     cout << "face = B" << endl;
                     // }
                     if ((face_edge->mVert1 == vert1 && face_edge->mVert2 == vert2) ||
                         (face_edge->mVert1 == vert2 && face_edge->mVert2 == vert1)) {
@@ -897,7 +844,6 @@ void Mesh::GetIndices(vector<WE_Face*>& faces, vector<unsigned int>& indices) {
                 
                 if (!(edge->mFaceA) || !(edge->mFaceB)) {
                     unsigned int idx = ((i - 1) < 0) ? vertices.size() - 1 : i - 1; 
-                    // cout << "index " << i*2+1 << ": " <<  vertices.at(idx)->mIndex << endl;
                     indices.push_back(vertices.at(idx)->mIndex);
                     continue;
                 }
@@ -913,11 +859,9 @@ void Mesh::GetIndices(vector<WE_Face*>& faces, vector<unsigned int>& indices) {
 
                 if (adj_edge->mVert1 == vert1 ||
                     adj_edge->mVert1 == vert2) {
-                    // cout << "index " << i*2+1 << ": " <<  adj_edge->mVert2->mIndex << endl;
                     indices.push_back(adj_edge->mVert2->mIndex);    // 1
                 } else if (adj_edge->mVert2 == vert1 ||
                            adj_edge->mVert2 == vert2) {
-                    // cout << "index " << i*2+1 << ": " <<  adj_edge->mVert1->mIndex << endl;
                     indices.push_back(adj_edge->mVert1->mIndex);    // 1
                 } else {
                     cerr << "Invalid edge." << endl;
@@ -940,11 +884,8 @@ void Mesh::GetVertexNormal(WE_Vertex* vert, vector<glm::vec3>& normals) {
     vert->GetFaces(facesAttachedToVertex);
 
     glm::vec3 norm;
-    // cout << "Index: " << vert->mIndex << endl;
-    // cout << "Faces attached size: " << facesAttachedToVertex.size() << endl;
     for (auto& face : facesAttachedToVertex) {
         vector<WE_Edge*> edges;
-        // cout << "Faces: " << face->mEdges.size() << endl;
         for(auto& edge : face->mEdges) {
             if(edge->mVert1 == vert || edge->mVert2 == vert) {
                 edges.push_back(edge);
